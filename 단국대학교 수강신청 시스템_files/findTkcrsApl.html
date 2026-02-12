@@ -223,7 +223,16 @@
         </div>
         <div class="f_r w_20 tbl_row" style="width: 21%">
           <table class="tbl_type1">
-            <caption>학점</caption>
+            <caption style="
+              border: 1px solid #ccc;          /* 테두리 회색 */
+              border-bottom: none;             /* 아래쪽 테두리만 없애서 표와 연결된 느낌 */
+              background-color: #f9f9f9;      /* 연한 회색 배경 */
+              padding: 8px 10px;               /* 안쪽 여백 */
+              text-align: center;                /* 왼쪽 정렬 */
+              font-weight: bold;               /* 글자 굵게 */
+              font-size: 13px;                 /* 글자 크기 조절 */
+              color: #333;                     /* 글자 색상 */
+">학점</caption>
             <colgroup>
               <col style="width: 80%">
               <col>
@@ -725,7 +734,16 @@
         <!-- 섹션 타이틀 -->
         <div class="tbl_column">
           <table class="tbl_striped tbl_column" id="tkcrsAplTbl">
-            <caption>수강신청 내역</caption>
+            <caption style="
+              border: 1px solid #ccc;          /* 테두리 회색 */
+              border-bottom: none;             /* 아래쪽 테두리만 없애서 표와 연결된 느낌 */
+              background-color: #f9f9f9;      /* 연한 회색 배경 */
+              padding: 8px 10px;               /* 안쪽 여백 */
+              text-align: center;                /* 왼쪽 정렬 */
+              font-weight: bold;               /* 글자 굵게 */
+              font-size: 13px;                 /* 글자 크기 조절 */
+              color: #333;                     /* 글자 색상 */
+">수강신청 내역</caption>
             <colgroup>
               <col style="width: 50px">
               <col style="width: 50px">
@@ -786,9 +804,9 @@
             <tbody>
               <tr>
                 <th scope="row">신청과목 수</th><!-- 신청과목 수 -->
-                <td class="ta_c">6</td>
+                <td class="ta_c" id="totalCount">0</td>
                 <th scope="row">신청학점</th><!-- 신청학점 -->
-                <td class="ta_c">18</td>
+                <td class="ta_c" id="totalCredit">0</td>
 
               </tr>
             </tbody>
@@ -801,7 +819,16 @@
     <div class="f_r w_29">
       <div class="tbl_importance">
         <table id="tkcrsAplTmtblTbl"><!-- 0429 class 삭제 -->
-          <caption>시간표</caption>
+          <caption style="
+              border: 1px solid #ccc;          /* 테두리 회색 */
+              border-bottom: none;             /* 아래쪽 테두리만 없애서 표와 연결된 느낌 */
+              background-color: #f9f9f9;      /* 연한 회색 배경 */
+              padding: 8px 10px;               /* 안쪽 여백 */
+              text-align: center;                /* 왼쪽 정렬 */
+              font-weight: bold;               /* 글자 굵게 */
+              font-size: 13px;                 /* 글자 크기 조절 */
+              color: #333;                     /* 글자 색상 */
+">시간표</caption>
           <colgroup>
             <col style="width: 40px; ">
             <col>
@@ -1657,8 +1684,13 @@
     $(document).ready(function () {
       console.log("Custom script loaded."); // Debugging
 
-      // 1. Initial Cleanup: Removed as per request (static rows removed manually from HTML)
-      // $("#tkcrsAplTbl tbody").empty();
+      // Initialize counters
+      var totalCount = 0;
+      var totalCredit = 0;
+
+      // 1. Initial Cleanup: Clear initial timetable selections to remove gray boxes
+      $("#tkcrsAplTmtblTbl input[value='1']").val("");
+      $("#tkcrsAplTmtblTbl .cell_select").removeClass("cell_select");
 
       // 2. Click listener for Course Plan Assistant (Add Course)
       $("body").on("dblclick", "#tabs-1 tbody tr", function () {
@@ -1671,7 +1703,8 @@
         var dvclsNb = $this.find("input[name='dvclsNb']").val();
 
         // Visual cells
-        var credit = $this.find("td").eq(3).text().trim();
+        var creditText = $this.find("td").eq(3).text().trim();
+        var credit = parseInt(creditText) || 0; // Parse credit as integer
         var prof = $this.find("td").eq(4).text().trim();
         var schedule = $this.find("td").eq(5).text().trim();
         var campus = "죽전";
@@ -1694,17 +1727,11 @@
         }
 
         // Exact HTML Structure
-        var newRow1 = "<tr data-subjid='" + subjId + "' data-schedule='" + schedule + "'>" +
+        var newRow1 = "<tr data-subjid='" + subjId + "' data-schedule='" + schedule + "' data-credit='" + credit + "'>" +
           "<td rowspan='2'>" +
           "<a href='javascript:void(0);' class='btn btn_inner btn_del'>" +
           "<span class='btn_txt'>삭제</span><!-- 삭제 -->" +
           "</a>" +
-          "\n" +
-          "<!-- 20210906 kdh 공유혁신대학 관리항목 과목만 삭제버튼이 보이게 수정 -->\n" +
-          "<!-- 대학원 정정기간에 오픈하므로 대학원은 삭제버튼 생성  -->\n" +
-          "\n" +
-          "<!--주석 끝  20210906 kdh 공유혁신대학 관리항목 과목만 삭제버튼이 보이게 수정 -->\n" +
-          "\n" +
           "<input type='hidden' name='idx' value='1'>" +
           "<input type='hidden' name='opOrgid' value='2000000989'>" +
           "<input type='hidden' name='subjId' value='" + subjId + "'>" +
@@ -1714,7 +1741,6 @@
           "<input type='hidden' name='tkcrsWdPsblYn' value='1'>" +
           "<input type='hidden' name='sznDtlWokId' value=''>" +
           "<input type='hidden' name='detMngtDscCd' value=''>" +
-          "<!-- 20210906 kdh 개설교과목 상세 관리항목추가 - 혁신공유대학과목을 구분하기 위함. 삭제버튼 컨트롤 -->" +
           "</td>" +
           "<td>" + campus + "</td>" +
           "<td>" + subjId + "</td>" +
@@ -1732,6 +1758,15 @@
 
         $("#tkcrsAplTbl tbody").append(newRow1 + newRow2);
 
+        // Update Counters (Add)
+        totalCount++;
+        totalCredit += credit;
+        $("#totalCount").text(totalCount);
+        $("#totalCredit").text(totalCredit);
+
+        // Visual Feedback: Gray out the selected row
+        $this.css("background-color", "#D3D3D3");
+
         // Color Timetable
         colorTimetable(schedule, true);
       });
@@ -1741,10 +1776,17 @@
         console.log("Delete clicked.");
         var $row1 = $(this).closest("tr");
         var schedule = $row1.data("schedule");
+        var credit = parseInt($row1.data("credit")) || 0;
         var $row2 = $row1.next("tr");
 
         $row1.remove();
         $row2.remove();
+
+        // Update Counters (Subtract)
+        if (totalCount > 0) totalCount--;
+        if (totalCredit >= credit) totalCredit -= credit;
+        $("#totalCount").text(totalCount);
+        $("#totalCredit").text(totalCredit);
 
         // Remove color from Timetable
         colorTimetable(schedule, false);
@@ -1777,7 +1819,7 @@
                 var $targetRow = $("#tkcrsAplTmtblTbl tbody tr").eq(periodNum - 1);
                 var $targetCell = $targetRow.find("td").eq(dayIndex);
                 if (isAdd) {
-                  $targetCell.css("background-color", "#ffaaaa");
+                  $targetCell.css("background-color", "#D9E5FF"); // Light Blue color
                 } else {
                   $targetCell.css("background-color", "");
                 }
