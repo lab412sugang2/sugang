@@ -90,6 +90,7 @@
           $("#subjId").select();
         }
       }
+      /*
       if ("{yy=2026, stuid=32222197, curiCparCd=2765, subjKnm=데이터베이스, dvclsLmtNoper=34, rnkg=1100, subjDvcls=329810-4, ltrTyNm=null, peakYn=Y, pfltNm=나연묵, crd=3, tkcrsNoper=34, semCd=1, subjId=329810, deptLoctNm=죽전, buldAndRoomCont=금1,2,3,4,5,6(2공105), deptLoctCd=1, dvclsNb=4, wkLecrEmpid=11932468, opOrgid=2000000989}".length != 0) {
         // 더블클릭시 수강신청 이벤트
         $("#tabs-1 tbody tr").dblclick(function (e) {
@@ -103,6 +104,7 @@
           $.submit("saveTkcrsApl.do", param);
         });
       }
+      */
       // table내에 있는 a click이벤트
       $("#tkcrsAplTbl a").click(function (e) {
         idx = $(this).parents("td").find("[name$=idx]").val();
@@ -320,33 +322,7 @@
 
 
 
-                <tr style="cursor: pointer;">
-                  <td>
-                    <input type="hidden" name="subjId" value="329810">
-                    <input type="hidden" name="subjNm" value="데이터베이스">
-                    <input type="hidden" name="dvclsNb" value="4">
-                    <input type="hidden" name="opOrgid" value="2000000989">
-                    329810
-                  </td>
-                  <td class="ta_c">4</td>
-                  <td class="ta_l">데이터베이스</td>
-                  <td class="ta_c">3</td>
-                  <td>나연묵</td>
-                  <td class="ta_l">금1,2,3,4,5,6(2공105)</td>
 
-                  <td>
-
-                    <font size="2px" color="red" style="font-weight: bold">
-                      Y
-                    </font>
-
-
-                  </td>
-
-                  <td>34</td>
-                  <td>34</td>
-                  <td></td>
-                </tr>
 
                 <tr style="cursor: pointer;">
                   <td>
@@ -1740,7 +1716,7 @@
       // $("#tkcrsAplTbl tbody").empty();
 
       // 2. Click listener for Course Plan Assistant (Add Course)
-      $("body").on("click", "#tabs-1 tbody tr", function () {
+      $("body").on("dblclick", "#tabs-1 tbody tr", function () {
         console.log("Course clicked.");
         var $this = $(this);
 
@@ -1776,7 +1752,7 @@
         var newRow1 = "<tr data-subjid='" + subjId + "' data-schedule='" + schedule + "'>" +
           "<td rowspan='2'>" +
           "<a href='javascript:void(0);' class='btn btn_inner btn_del'>" +
-          "<span class='btn_txt'>삭제</span><!-- 삭제 -->"  
+          "<span class='btn_txt'>삭제</span><!-- 삭제 -->" +
           "</a>" +
           "\n" +
           "<!-- 20210906 kdh 공유혁신대학 관리항목 과목만 삭제버튼이 보이게 수정 -->\n" +
