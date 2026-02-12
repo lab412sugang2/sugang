@@ -1,0 +1,1872 @@
+<!DOCTYPE html>
+<!-- saved from url=(0044)https://sugang.dankook.ac.kr/findTkcrsApl.do -->
+<html lang="ko"><!--운영 소스 커밋할때는 https 로 둔다 --><!--로컬일때만 x-chema로 둔다. -->
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!--<base href="https://sugang.dankook.ac.kr:443/">-->
+  <base href=".">
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+
+  <title>단국대학교 수강신청 시스템</title>
+  <link rel="shortcut icon" type="image/x-icon" href="https://sugang.dankook.ac.kr/images/layout/favicon.ico">
+  <link rel="stylesheet" href="./jquery-ui.min.css">
+  <link rel="stylesheet" href="./style.min.css">
+  <script src="jquery-1.11.1.min.js"></script>
+  <script src="placeholders.min.js"></script>
+  <script src="jquery-ui.min.js"></script>
+  <script src="common.js"></script>
+  <script src="style.min.js"></script>
+  <!--      <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="No-Cache">
+    <meta http-equiv="Expires" content="-1"> -->
+</head>
+
+<body id="body">
+  <script type="text/javascript">
+    var aplResult = "";
+
+    if ("" != "" && aplResult == "") {
+      $.alert("", 'selectSubj()');
+    }
+
+    if (aplResult != "") {
+      $.confirm("", 'reSend()', 'selectSubj()');
+    }
+
+    if ("" == "Y") {
+      parent.location.replace("main.do");
+    }
+    function reSend() {
+      var param = {
+        "subjId": ""
+        , "subjNm": ""
+        , "dvclsNb": ""
+        , "opOrgid": ""
+        , "rpcrsObjYy": ""
+        , "rpcrsObjSemCd": ""
+        , "rpcrsObjSemNm": ""
+        , "rpcrsObjSubjId": ""
+        , "rpcrsObjSubjNm": ""
+        , "rpcrsGrade": ""
+        , "tabIndex": ""
+        , "stepCnt": "2"
+      };
+      $.submit("saveTkcrsApl.do", param);
+    }
+
+    var idx = 0;
+    var chk = "";
+
+
+    function tkcrsDel() {
+      var delIdx = idx * 2;
+      var param = {
+        "opOrgid": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=opOrgid]").val()
+        , "subjId": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=subjId]").val()
+        , "subjNm": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=subjNm]").val()
+        , "dvclsNb": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=dvclsNb]").val()
+        , "webAplDelPsblYn": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=webAplDelPsblYn]").val()
+        , "tkcrsWdPsblYn": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=tkcrsWdPsblYn]").val()
+        , "sznDtlWokId": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=sznDtlWokId]").val()
+        , "tabIndex": $("ul> .ui-tabs-active").index()
+      };
+      $.submit("deleteTkcrsApl.do", param);
+    }
+
+    function selectSubj() {
+      if ($("ul> .ui-tabs-active").index() == 1) {
+        $("#subjId").select();
+      }
+    }
+
+    $(document).ready(function () {
+      $(".tab_header a:eq()").trigger("click");
+
+      if ($("ul> .ui-tabs-active").index() == 1) {
+        if ("" == "" && "" == "") {
+          $("#subjId").select();
+        }
+      }
+      if ("{yy=2026, stuid=32222197, curiCparCd=2765, subjKnm=데이터베이스, dvclsLmtNoper=34, rnkg=1100, subjDvcls=329810-4, ltrTyNm=null, peakYn=Y, pfltNm=나연묵, crd=3, tkcrsNoper=34, semCd=1, subjId=329810, deptLoctNm=죽전, buldAndRoomCont=금1,2,3,4,5,6(2공105), deptLoctCd=1, dvclsNb=4, wkLecrEmpid=11932468, opOrgid=2000000989}".length != 0) {
+        // 더블클릭시 수강신청 이벤트
+        $("#tabs-1 tbody tr").dblclick(function (e) {
+          var param = {
+            "subjId": $(this).find("[name$=subjId]").val()
+            , "subjNm": $(this).find("[name$=subjNm]").val()
+            , "dvclsNb": $(this).find("[name$=dvclsNb]").val()
+            , "opOrgid": $(this).find("[name$=opOrgid]").val()
+            , "tabIndex": $("ul> .ui-tabs-active").index()
+          };
+          $.submit("saveTkcrsApl.do", param);
+        });
+      }
+      // table내에 있는 a click이벤트
+      $("#tkcrsAplTbl a").click(function (e) {
+        idx = $(this).parents("td").find("[name$=idx]").val();
+
+
+        chk = $(this).parents("td").find("[name$=detMngtDscCd]").val();
+
+        $.confirm("삭제하시겠습니까?", 'tkcrsDel()', 'selectSubj()');/* 삭제하시겠습니까? */
+      });
+
+      // table내에 있는 a click이벤트
+      $("#subjTkcrsApl a").click(function (e) {
+        e.preventDefault();
+        var url = "findGsLctTmtbl.do";
+        var opt = "width=900, height=600, top=100 ,left=100, resizable=yes, scrollbars=yes, status=no";
+        window.open(url, "Tmtbl", opt);
+      });
+
+      $("#tabs-2 input").keydown(function (e) {
+        if (e.keyCode == 13) {
+          if ($("#subjId").val() == "" || $("#subjId").val() == null) {
+            $.alert("교과목번호를 먼저 입력해 주십시오.", 'selectSubj()'); //교과목번호를 먼저 입력해 주십시오.
+            return false;
+          } else if ($("#dvclsNb").val() == "" || $("#dvclsNb").val() == "") {
+            $.alert("분반번호를 입력해 주십시오.", 'selectSubj()'); //분반번호를 입력해 주십시오.
+            return false;
+          }
+          var param = {
+            "subjId": $("#subjId").val()
+            , "dvclsNb": $("#dvclsNb").val()
+            , "opOrgid": "2000000989"
+            , "tabIndex": $("ul> .ui-tabs-active").index()
+          };
+          $.submit("findSubjInfo.do", param);
+        }
+      });
+
+      $("#tabBtn2").click(function (e) {
+        $("#subjId").select();
+      });
+
+      $("#subjId").click(function (e) {
+        $(this).select();
+      });
+
+      $("#dvclsNb").click(function (e) {
+        $(this).select();
+      });
+
+      $("#subjId").keyup(function (e) {
+        if ($(this).val().length == 6) {
+          $("#dvclsNb").click();
+        }
+      });
+    });
+
+    function apl() {
+      var param = {
+        "subjId": $("#subjId").val()
+        , "dvclsNb": $("#dvclsNb").val()
+        , "opOrgid": $("#opOrgid").val()
+      };
+      $.submit("findSubjInfo.do", param);
+    }
+  </script>
+  <div class="f_l w_70">
+    <div class="clear_box">
+      <div class="f_l w_79 tbl_row" style="width: 78%">
+        <table class="tbl_striped">
+          <caption>수강신청 내 정보</caption>
+          <colgroup>
+            <col style="width: 100px">
+            <col style="width: 12%">
+            <col style="width: 14%">
+            <col style="width: 10%">
+            <col>
+          </colgroup>
+          <tbody>
+            <tr style="height:49.25px;">
+              <th scope="rowgroup" rowspan="2" class="bg_striped">2026-1학기
+
+                <br>(3학년-1)
+
+
+              </th><!-- 학기 --><!-- 학년 -->
+              <th scope="row">학번</th><!-- 학번 -->
+              <td>32222197</td>
+              <th scope="row">소속</th><!-- 소속 -->
+              <td>SW융합대학 컴퓨터공학과</td>
+            </tr>
+            <tr style="height:49.25px;">
+              <th scope="row">성명</th><!-- 성명 -->
+              <td>서준영</td>
+              <th scope="row">제1전공</th><!-- 제1전공 -->
+              <td>SW융합대학 컴퓨터공학과</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="f_r w_20 tbl_row" style="width: 21%">
+        <table class="tbl_type1">
+          <caption>학점</caption>
+          <colgroup>
+            <col style="width: 80%">
+            <col>
+          </colgroup>
+          <tbody style="font-size:11px;">
+            <tr>
+              <th scope="row">이수학기</th><!-- 이수학기 -->
+              <td class="ta_c">4</td>
+            </tr>
+
+            <tr>
+              <th scope="row">학기최소학점</th><!-- 최소학점 -->
+              <td class="ta_c">12</td>
+            </tr>
+            <tr>
+              <th scope="row">학기최대학점(A)</th><!-- 학기 최대학점(A) -->
+              <td class="ta_c">21</td>
+            </tr>
+            <tr>
+              <th scope="row">학기이월학점(B)</th><!-- 학기 이월학점(B) -->
+              <!-- 20220128 이월+혁신 합산사용  천안 학사팀 안병욱 요청 20240709 혁신 분리 -->
+              <td class="ta_c">0</td>
+            </tr>
+            <tr>
+              <th scope="row">성적초과학점(C)</th><!-- 성적 초과학점(C) -->
+              <td class="ta_c">3</td>
+            </tr>
+
+            <tr>
+              <th scope="row">혁신추가학점(D)</th><!-- 혁신공유사업단 추가학점  --> <!-- 20240708 혁신공유 추가학점 -->
+              <td class="ta_c">0</td>
+            </tr>
+            <tr>
+              <th scope="row">신청가능학점<br>(A+B+C+D)</th><!-- 신청가능학점  --> <!-- 20240711 신청가능학점 -->
+              <td class="ta_c">24</td>
+            </tr>
+
+
+
+
+
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!--   <div class="section_mid_tit">
+          <font size="2px" color="red" style="font-weight: bold">사회적거리두기2단계 격상에 따라 현재 강의유형이 <병행강의>인 강좌는 2차 수강신청 완료 후<br> 수강신청 인원 기준 30명 이상일 경우 <온라인강의2>로 전환됩니다.<br></font>
+  </div> -->
+
+
+
+    <!-- 탭 -->
+    <div class="tabs ui-tabs ui-widget ui-widget-content ui-corner-all">
+      <div class="tab_header_box" id="tabsHeader">
+        <ul class="tab_header ui-tabs-nav ui-helper-reset ui-helper-clearfix ui-widget-header ui-corner-all"
+          role="tablist">
+
+
+          <li class="ui-state-default ui-corner-top ui-tabs-active ui-state-active" role="tab" tabindex="0"
+            aria-controls="tabs-1" aria-labelledby="tabBtn1" aria-selected="true" aria-expanded="true"><a
+              href="https://sugang.dankook.ac.kr/findTkcrsApl.do#tabs-1" id="tabBtn1" tabid="1" class="ui-tabs-anchor"
+              role="presentation" tabindex="-1">수강계획도우미</a></li><!-- 수강계획도우미 -->
+
+          <li class="ui-state-default ui-corner-top" role="tab" tabindex="-1" aria-controls="tabs-2"
+            aria-labelledby="tabBtn2" aria-selected="false" aria-expanded="false"><a
+              href="https://sugang.dankook.ac.kr/findTkcrsApl.do#tabs-2" id="tabBtn2" tabid="2" class="ui-tabs-anchor"
+              role="presentation" tabindex="-1">교과목번호-분반</a></li>
+        </ul>
+      </div>
+
+      <!-- 수강계획도우미 -->
+      <div class="tab_cont ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-1" aria-labelledby="tabBtn1"
+        role="tabpanel" aria-hidden="false">
+        <div class="section_tbl">
+          <!-- 섹션 타이틀 -->
+          <div class="section_mid_tit">
+            <p class="ta_r">더블클릭하면 해당 강좌가 수강신청 됩니다.</p><!-- 더블클릭하면 해당 강좌가 수강신청 됩니다. -->
+          </div>
+          <!-- 섹션 타이틀 -->
+          <br><br>
+          <div class="tbl_column">
+            <table class="tbl_mixed">
+              <caption>수강계획도우미</caption>
+              <colgroup>
+                <col style="width: 55px">
+                <col style="width: 20px">
+                <col style="width: 130px">
+                <col style="width: 20px">
+                <col style="width: 55px">
+                <col>
+                <col style="width: 38px">
+                <col style="width: 38px">
+                <col style="width: 38px">
+                <col style="width: 35px">
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">교과목<br>번호</th><!-- 교과목 -->
+                  <th scope="col">분반</th><!-- 분반 -->
+                  <th scope="col">교과목명</th><!-- 교과목명 -->
+                  <th scope="col">학점</th><!-- 학점 -->
+                  <th scope="col">교강사명</th><!-- 교강사 -->
+                  <th scope="col">요일/교시/강의실</th><!-- 요일/교시/강의실 -->
+                  <th scope="col">마감여부</th><!-- 마감여부 -->
+                  <th scope="col">신청<br>인원</th><!-- 신청인원 -->
+                  <th scope="col">제한<br>인원</th><!-- 제한인원 -->
+                  <th scope="col">폐강</th><!-- 폐강 -->
+                </tr>
+              </thead>
+              <tbody>
+
+
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="329810">
+                    <input type="hidden" name="subjNm" value="데이터베이스">
+                    <input type="hidden" name="dvclsNb" value="4">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    329810
+                  </td>
+                  <td class="ta_c">4</td>
+                  <td class="ta_l">데이터베이스</td>
+                  <td class="ta_c">3</td>
+                  <td>나연묵</td>
+                  <td class="ta_l">금1,2,3,4,5,6(2공105)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>34</td>
+                  <td>34</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="389730">
+                    <input type="hidden" name="subjNm" value="인터넷프로토콜">
+                    <input type="hidden" name="dvclsNb" value="1">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    389730
+                  </td>
+                  <td class="ta_c">1</td>
+                  <td class="ta_l">인터넷프로토콜</td>
+                  <td class="ta_c">3</td>
+                  <td>박태근</td>
+                  <td class="ta_l">월10,11,12/수10,11,12(소프트310)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>31</td>
+                  <td>31</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="558250">
+                    <input type="hidden" name="subjNm" value="데이터분석과시각화">
+                    <input type="hidden" name="dvclsNb" value="1">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    558250
+                  </td>
+                  <td class="ta_c">1</td>
+                  <td class="ta_l">데이터분석과시각화</td>
+                  <td class="ta_c">3</td>
+                  <td>이건석</td>
+                  <td class="ta_l">월4,5,6/목10,11,12(2공105)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>34</td>
+                  <td>34</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="388600">
+                    <input type="hidden" name="subjNm" value="인공지능">
+                    <input type="hidden" name="dvclsNb" value="1">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    388600
+                  </td>
+                  <td class="ta_c">1</td>
+                  <td class="ta_l">인공지능</td>
+                  <td class="ta_c">3</td>
+                  <td>김선오</td>
+                  <td class="ta_l">수13,14,15/목1,2,3</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>128</td>
+                  <td>128</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="558280">
+                    <input type="hidden" name="subjNm" value="문제해결프로그래밍설계">
+                    <input type="hidden" name="dvclsNb" value="1">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    558280
+                  </td>
+                  <td class="ta_c">1</td>
+                  <td class="ta_l">문제해결프로그래밍설계</td>
+                  <td class="ta_c">3</td>
+                  <td>박경신</td>
+                  <td class="ta_l">목13,14,15,16,17,18(2공521)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>31</td>
+                  <td>31</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="465890">
+                    <input type="hidden" name="subjNm" value="임베디드시스템">
+                    <input type="hidden" name="dvclsNb" value="1">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    465890
+                  </td>
+                  <td class="ta_c">1</td>
+                  <td class="ta_l">임베디드시스템</td>
+                  <td class="ta_c">3</td>
+                  <td>최용근</td>
+                  <td class="ta_l">월1,2,3/화16,17,18(2공524)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>43</td>
+                  <td>43</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="389730">
+                    <input type="hidden" name="subjNm" value="인터넷프로토콜">
+                    <input type="hidden" name="dvclsNb" value="2">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    389730
+                  </td>
+                  <td class="ta_c">2</td>
+                  <td class="ta_l">인터넷프로토콜</td>
+                  <td class="ta_c">3</td>
+                  <td>박태근</td>
+                  <td class="ta_l">월13,14,15/수4,5,6(소프트310)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>31</td>
+                  <td>31</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="558040">
+                    <input type="hidden" name="subjNm" value="오픈소스SW기초">
+                    <input type="hidden" name="dvclsNb" value="5">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    558040
+                  </td>
+                  <td class="ta_c">5</td>
+                  <td class="ta_l">오픈소스SW기초</td>
+                  <td class="ta_c">3</td>
+                  <td></td>
+                  <td class="ta_l">금9,10,11,12,13,14(소프트406)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>34</td>
+                  <td>34</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="529680">
+                    <input type="hidden" name="subjNm" value="정보보안개론">
+                    <input type="hidden" name="dvclsNb" value="1">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    529680
+                  </td>
+                  <td class="ta_c">1</td>
+                  <td class="ta_l">정보보안개론</td>
+                  <td class="ta_c">3</td>
+                  <td>윤택영</td>
+                  <td class="ta_l">월1,2,3/수1,2,3(소프트227)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>30</td>
+                  <td>30</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="372460">
+                    <input type="hidden" name="subjNm" value="알고리즘">
+                    <input type="hidden" name="dvclsNb" value="3">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    372460
+                  </td>
+                  <td class="ta_c">3</td>
+                  <td class="ta_l">알고리즘</td>
+                  <td class="ta_c">3</td>
+                  <td>조남수</td>
+                  <td class="ta_l">월4,5,6/수4,5,6(소프트306)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>26</td>
+                  <td>26</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="558040">
+                    <input type="hidden" name="subjNm" value="오픈소스SW기초">
+                    <input type="hidden" name="dvclsNb" value="2">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    558040
+                  </td>
+                  <td class="ta_c">2</td>
+                  <td class="ta_l">오픈소스SW기초</td>
+                  <td class="ta_c">3</td>
+                  <td>송인식</td>
+                  <td class="ta_l">금9,10,11,12,13,14(소프트516)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>34</td>
+                  <td>34</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="558040">
+                    <input type="hidden" name="subjNm" value="오픈소스SW기초">
+                    <input type="hidden" name="dvclsNb" value="4">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    558040
+                  </td>
+                  <td class="ta_c">4</td>
+                  <td class="ta_l">오픈소스SW기초</td>
+                  <td class="ta_c">3</td>
+                  <td>김종우</td>
+                  <td class="ta_l">금9,10,11,12,13,14(소프트517)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>34</td>
+                  <td>34</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="558330">
+                    <input type="hidden" name="subjNm" value="기본컴퓨터공학실험1">
+                    <input type="hidden" name="dvclsNb" value="4">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    558330
+                  </td>
+                  <td class="ta_c">4</td>
+                  <td class="ta_l">기본컴퓨터공학실험1</td>
+                  <td class="ta_c">1</td>
+                  <td>박경신</td>
+                  <td class="ta_l">금12,13,14,15(2공522)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>13</td>
+                  <td>13</td>
+                  <td></td>
+                </tr>
+
+                <tr style="cursor: pointer;">
+                  <td>
+                    <input type="hidden" name="subjId" value="558330">
+                    <input type="hidden" name="subjNm" value="기본컴퓨터공학실험1">
+                    <input type="hidden" name="dvclsNb" value="2">
+                    <input type="hidden" name="opOrgid" value="2000000989">
+                    558330
+                  </td>
+                  <td class="ta_c">2</td>
+                  <td class="ta_l">기본컴퓨터공학실험1</td>
+                  <td class="ta_c">1</td>
+                  <td>박경신</td>
+                  <td class="ta_l">화3,4,5,6(2공522)</td>
+
+                  <td>
+
+                    <font size="2px" color="red" style="font-weight: bold">
+                      Y
+                    </font>
+
+
+                  </td>
+
+                  <td>13</td>
+                  <td>13</td>
+                  <td></td>
+                </tr>
+
+
+
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="section_mid_tit">
+          <br><br>
+          <br>
+          <p class="ta_r">마감된 강좌는 잔여석에 한해 11시, 12시, 18시, 23시에 수강신청 가능</p><!-- 더블클릭하면 해당 강좌가 수강신청 됩니다. -->
+        </div>
+      </div>
+      <!-- //수강계획도우미 -->
+
+      <div class="tab_cont ui-tabs-panel ui-widget-content ui-corner-bottom" id="tabs-2" aria-labelledby="tabBtn2"
+        role="tabpanel" aria-hidden="true" style="display: none;">
+        <!-- 교과목 분반 -->
+        <div class="section_tbl">
+
+          <!-- 섹션 타이틀 -->
+          <div class="section_mid_tit">
+
+            <p class="ta_r">교과목코드와 분반번호를 입력 후 Enter를 치면 해당 강좌가 수강신청 됩니다.</p>
+            <!-- 교과목코드와 분반번호를 입력 후 Enter를 치면 해당 강좌가 수강신청 됩니다. -->
+
+
+          </div>
+          <!-- 섹션 타이틀 -->
+          <br><br>
+          <div class="tbl_row">
+            <table id="subjTkcrsApl">
+              <caption>교과목-분반</caption>
+              <colgroup>
+                <col style="width:20%">
+                <col style="width:20%">
+                <col style="width:20%">
+                <col>
+              </colgroup>
+              <tbody>
+                <tr>
+                  <th scope="row">교과목번호-분반</th><!-- 교과목-분반 -->
+                  <td colspan="3">
+                    <input type="text" size="23" title="교과목" id="subjId" maxlength="6">
+                    -
+                    <input type="text" size="5" title="분반" id="dvclsNb" maxlength="3">
+                    <input type="hidden" id="opOrgid">
+
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">교과목명</th><!-- 교과목명 -->
+                  <td colspan="3"></td>
+                </tr>
+                <tr>
+                  <th scope="row">학점</th><!-- 학점 -->
+                  <td></td>
+                  <th scope="row">교강사명</th><!-- 교강사명 -->
+                  <td></td>
+                </tr>
+                <tr>
+                  <th scope="row">요일/교시/강의실</th><!-- 요일/교시/강의실 -->
+                  <td colspan="3"></td>
+                </tr>
+                <tr>
+                  <th scope="row">재수강 취득년도</th><!-- 재수강 취득년도 -->
+                  <td></td>
+                  <th scope="row">재수강 교과목</th><!-- 재수강 교과목 -->
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- 20220809 대학원 강건한 추가 요청  -->
+            <br>
+
+            <!-- 20220809 대학원 강건한 추가 요청  끝 -->
+
+          </div>
+        </div>
+        <!-- //교과목 분반 -->
+      </div>
+    </div>
+    <!-- //탭 -->
+    <!-- 수강신청 내역 -->
+    <div class="section_tbl">
+      <!-- 섹션 타이틀 -->
+      <div class="section_mid_tit">
+        <h4 class="tit_mid">수강신청내역</h4><!-- 수강신청 내역 -->
+      </div>
+      <!-- 섹션 타이틀 -->
+      <div class="tbl_column">
+        <table class="tbl_striped tbl_column" id="tkcrsAplTbl">
+          <caption>수강신청 내역</caption>
+          <colgroup>
+            <col style="width: 50px">
+            <col style="width: 50px">
+            <col style="width: 70px">
+            <col style="width: 30px">
+            <col>
+            <col style="width: 40px">
+            <col style="width: 60px">
+            <col style="width: 50px">
+            <col style="width: 100px">
+            <!--           <col style="width: 60px" />
+          <col style="width: 60px" />
+          <col style="width: 60px" /> -->
+          </colgroup>
+          <thead>
+            <tr>
+              <th scope="col">삭제</th><!-- 삭제 -->
+              <th scope="col">캠퍼스</th><!-- 캠퍼스 -->
+              <th scope="col">교과목번호</th><!-- 교과목 -->
+              <th scope="col">분반</th><!-- 분반 -->
+              <th scope="col">교과목명</th><!-- 교과목명 -->
+              <th scope="col">학점</th><!-- 학점 -->
+              <th scope="col">교강사명</th><!-- 교강사 -->
+              <th scope="col">재수강 년도학기</th><!-- 재수강년도학기 -->
+              <th scope="col">수업유형</th><!-- 강의유형 -->
+              <!--             <th scope="col">2단계</th>강의유형
+            <th scope="col">3단계</th>강의유형
+            <th scope="col">4단계</th>강의유형 -->
+
+            </tr>
+          </thead>
+          <tbody>
+
+
+
+
+
+
+
+
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- //수강신청 내역 -->
+    <!-- 납부예정금액 --><!-- 0429 위치 변경 -->
+    <div class="section_tbl">
+      <div class="tbl_row">
+        <table>
+          <caption>납부예정 금액</caption>
+          <colgroup>
+            <col style="width: 15%">
+            <col style="width: 15%">
+            <col style="width: 15%">
+            <col style="width: 15%">
+
+          </colgroup>
+          <tbody>
+            <tr>
+              <th scope="row">신청과목 수</th><!-- 신청과목 수 -->
+              <td class="ta_c">6</td>
+              <th scope="row">신청학점</th><!-- 신청학점 -->
+              <td class="ta_c">18</td>
+
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <!-- //납부예정금액 -->
+  </div>
+  <!-- 시간표 -->
+  <div class="f_r w_29">
+    <div class="tbl_importance">
+      <table id="tkcrsAplTmtblTbl"><!-- 0429 class 삭제 -->
+        <caption>시간표</caption>
+        <colgroup>
+          <col style="width: 40px; ">
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+          <col>
+        </colgroup>
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">월</th><!-- 월 -->
+            <th scope="col">화</th><!-- 화 -->
+            <th scope="col">수</th><!-- 수 -->
+            <th scope="col">목</th><!-- 목 -->
+            <th scope="col">금</th><!-- 금 -->
+            <th scope="col">토</th><!-- 토 -->
+          </tr>
+        </thead>
+        <tbody>
+
+
+
+          <tr>
+            <td>1</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="friCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>2</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="friCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>3</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="friCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>4</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="friCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>5</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="friCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>6</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="friCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>7</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>8</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>9</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>10</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="wedCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>11</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="wedCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>12</td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="monCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="wedCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>13</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="wedCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>14</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="wedCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>15</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="wedCnt" value="1">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>16</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="tueCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>17</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="tueCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>18</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="tueCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+
+            <td class="cell_select">
+
+              <input type="hidden" name="thuCnt" value="1">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>19</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>20</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>21</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>22</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>23</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+          <tr>
+            <td>24</td>
+            <td>
+
+
+              <input type="hidden" name="monCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="tueCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="wedCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="thuCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="friCnt" value="">
+            </td>
+            <td>
+
+
+              <input type="hidden" name="satCnt" value="">
+            </td>
+          </tr>
+
+
+
+
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <!-- //시간표 -->
+
+
+  <script>
+    $(document).ready(function () {
+      console.log("Custom script loaded."); // Debugging
+
+      // 1. Initial Cleanup: Removed as per request (static rows removed manually from HTML)
+      // $("#tkcrsAplTbl tbody").empty();
+
+      // 2. Click listener for Course Plan Assistant (Add Course)
+      $("body").on("click", "#tabs-1 tbody tr", function () {
+        console.log("Course clicked.");
+        var $this = $(this);
+
+        // Extract Data
+        var subjId = $this.find("input[name='subjId']").val();
+        var subjNm = $this.find("input[name='subjNm']").val();
+        var dvclsNb = $this.find("input[name='dvclsNb']").val();
+
+        // Visual cells
+        var credit = $this.find("td").eq(3).text().trim();
+        var prof = $this.find("td").eq(4).text().trim();
+        var schedule = $this.find("td").eq(5).text().trim();
+        var campus = "죽전";
+        var type = "대면수업";
+
+        console.log("Selected:", subjId, subjNm, schedule);
+
+        // Check for duplicates
+        var isDuplicate = false;
+        $("#tkcrsAplTbl tbody tr").each(function () {
+          if ($(this).data('subjid') == subjId) {
+            isDuplicate = true;
+            return false;
+          }
+        });
+
+        if (isDuplicate) {
+          alert("이미 신청된 과목입니다.");
+          return;
+        }
+
+        // Exact HTML Structure
+        var newRow1 = "<tr data-subjid='" + subjId + "' data-schedule='" + schedule + "'>" +
+          "<td rowspan='2'>" +
+          "<a href='javascript:void(0);' class='btn btn_inner btn_del'>" +
+          "<span class='btn_txt'>삭제</span><!-- 삭제 -->"  
+          "</a>" +
+          "\n" +
+          "<!-- 20210906 kdh 공유혁신대학 관리항목 과목만 삭제버튼이 보이게 수정 -->\n" +
+          "<!-- 대학원 정정기간에 오픈하므로 대학원은 삭제버튼 생성  -->\n" +
+          "\n" +
+          "<!--주석 끝  20210906 kdh 공유혁신대학 관리항목 과목만 삭제버튼이 보이게 수정 -->\n" +
+          "\n" +
+          "<input type='hidden' name='idx' value='1'>" +
+          "<input type='hidden' name='opOrgid' value='2000000989'>" +
+          "<input type='hidden' name='subjId' value='" + subjId + "'>" +
+          "<input type='hidden' name='subjNm' value='" + subjNm + "'>" +
+          "<input type='hidden' name='dvclsNb' value='" + dvclsNb + "'>" +
+          "<input type='hidden' name='webAplDelPsblYn' value='1'>" +
+          "<input type='hidden' name='tkcrsWdPsblYn' value='1'>" +
+          "<input type='hidden' name='sznDtlWokId' value=''>" +
+          "<input type='hidden' name='detMngtDscCd' value=''>" +
+          "<!-- 20210906 kdh 개설교과목 상세 관리항목추가 - 혁신공유대학과목을 구분하기 위함. 삭제버튼 컨트롤 -->" +
+          "</td>" +
+          "<td>" + campus + "</td>" +
+          "<td>" + subjId + "</td>" +
+          "<td>" + dvclsNb + "</td>" +
+          "<td class='ta_l'>" + subjNm + "</td>" +
+          "<td>" + credit + "</td>" +
+          "<td>" + prof + "</td>" +
+          "<td></td>" +
+          "<td>" + type + "</td>" +
+          "</tr>";
+
+        var newRow2 = "<tr data-subjid='" + subjId + "'>" +
+          "<td colspan='8' class='ta_l'>" + schedule + "</td>" +
+          "</tr>";
+
+        $("#tkcrsAplTbl tbody").append(newRow1 + newRow2);
+
+        // Color Timetable
+        colorTimetable(schedule, true);
+      });
+
+      // 3. Delete button listener
+      $("#tkcrsAplTbl tbody").on("click", ".btn_del", function () {
+        console.log("Delete clicked.");
+        var $row1 = $(this).closest("tr");
+        var schedule = $row1.data("schedule");
+        var $row2 = $row1.next("tr");
+
+        $row1.remove();
+        $row2.remove();
+
+        // Remove color from Timetable
+        colorTimetable(schedule, false);
+      });
+
+      // Helper function to color timetable
+      function colorTimetable(scheduleStr, isAdd) {
+        if (!scheduleStr) return;
+        var cleanStr = scheduleStr.replace(/\([^\)]*\)/g, '');
+        var parts = cleanStr.split('/');
+        parts.forEach(function (part) {
+          part = part.trim();
+          if (part.length === 0) return;
+          var dayChar = part.charAt(0);
+          var periodsStr = part.substring(1);
+          var periods = periodsStr.split(',');
+          var dayIndex = -1;
+          switch (dayChar) {
+            case '월': dayIndex = 1; break;
+            case '화': dayIndex = 2; break;
+            case '수': dayIndex = 3; break;
+            case '목': dayIndex = 4; break;
+            case '금': dayIndex = 5; break;
+            case '토': dayIndex = 6; break;
+          }
+          if (dayIndex !== -1) {
+            periods.forEach(function (period) {
+              var periodNum = parseInt(period);
+              if (!isNaN(periodNum)) {
+                var $targetRow = $("#tkcrsAplTmtblTbl tbody tr").eq(periodNum - 1);
+                var $targetCell = $targetRow.find("td").eq(dayIndex);
+                if (isAdd) {
+                  $targetCell.css("background-color", "#ffaaaa");
+                } else {
+                  $targetCell.css("background-color", "");
+                }
+              }
+            });
+          }
+        });
+      }
+    });
+  </script>
+</body>
+
+</html>

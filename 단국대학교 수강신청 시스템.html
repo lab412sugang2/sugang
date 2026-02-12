@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<!-- saved from url=(0036)https://sugang.dankook.ac.kr/main.do -->
+<html lang="ko"><!--운영 소스 커밋할때는 https 로 둔다 --><!--로컬일때만 x-chema로 둔다. -->
+
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <!--<base href="https://sugang.dankook.ac.kr:443/">-->
+  <base href=".">
+
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+
+  <title>단국대학교 수강신청 시스템</title>
+  <link rel="shortcut icon" type="image/x-icon" href="https://sugang.dankook.ac.kr/images/layout/favicon.ico">
+  <link rel="stylesheet" href="단국대학교%20수강신청%20시스템_files/jquery-ui.min.css">
+  <link rel="stylesheet" href="단국대학교%20수강신청%20시스템_files/style.min.css">
+  <script src="단국대학교%20수강신청%20시스템_files/jquery-1.11.1.min.js"></script>
+  <script src="단국대학교%20수강신청%20시스템_files/placeholders.min.js"></script>
+  <script src="단국대학교%20수강신청%20시스템_files/jquery-ui.min.js"></script>
+  <script src="단국대학교%20수강신청%20시스템_files/common.js"></script>
+  <script src="단국대학교%20수강신청%20시스템_files/style.min.js"></script>
+  <!--      <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Cache-Control" content="No-Cache">
+    <meta http-equiv="Expires" content="-1"> -->
+  <script type="text/javascript">
+
+    var errorMessage = "";
+    if (errorMessage != "") {
+      alert("");
+    }
+    var layerYn = "";
+
+    $(document).ready(function () {
+
+
+      var $frame = $("iframe");
+      var $title = $("div.section_top_tit").hide();
+
+      $(document).on('keydown', function (e) {
+        if (e.keyCode === 27) { // ESC
+          location.replace("main.do");
+        }
+      });
+
+      /*
+          $frame.iframeHeight({
+              debugMode : false,
+              heightOffset : 10,
+              defaultHeight : 0,
+              blockCrossDomain : true,
+              watcher : true
+          });
+       */
+      //은행명 세팅
+      $("#rfndBaTbl").find("[name$=bankCd]").val("020");
+
+      if (("" == "Y")) {
+        $("#rfndBaTbl").find("[name$=bankCd]").val("");
+        $("#rfndBaTbl").find("[name$=ban]").val("");
+        $("#rfndBaTbl").find("[name$=depstNm]").val("");
+        $("#rfndBaTbl").find("[name$=telno]").val("");
+      }
+
+      //레이어팝업 UI 생성후 화면에 안보여주기
+      $(".pop_lay").dialog({
+        //이벤트 발생했을때 보여주려면 autoOpen : false로 지정해줘야 한다.
+        autoOpen: true,
+        //레이어팝업 넓이
+        width: 402,
+        //뒷배경을 disable 시키고싶다면 true
+        modal: true,
+        //버튼종류
+        buttons: [
+          {
+            //버튼텍스트
+            text: "저장",//저장
+            'class': 'btn_pop_save',
+
+            //클릭이벤트발생시 동작
+            click: function () {
+              if ($("#rfndBaTbl").find("[name$=bankCd]").val() == null || $("#rfndBaTbl").find("[name$=bankCd]").val() == "") {
+                alert("은행을 선택하십시오."); //은행을 선택하십시오.
+              } else if ($("#rfndBaTbl").find("[name$=#ban]").val() == "") {
+                alert("계좌번호를 입력하십시오."); //계좌번호를 입력하십시오.
+              } else if ($("#rfndBaTbl").find("[name$=#depstNm]").val() == "") {
+                alert("예금주명을 입력하십시오."); //예금주명을 입력하십시오.
+              } else {
+                //파람값 가지고 save
+                var param = {
+                  "banid": $(this).find("[name$=banid]").val()
+                  , "bankCd": $(this).find("[name$=bankCd]").val()
+                  , "ban": $(this).find("[name$=ban]").val()
+                  , "depstNm": $(this).find("[name$=depstNm]").val()
+                  , "telno": $(this).find("[name$=telno]").val()
+                };
+                $.submit("saveRfndBaApl.do", param);
+              }
+            }
+          },
+          {
+            //버튼텍스트
+            text: "닫기",//닫기
+
+            //클릭이벤트발생시 동작
+            click: function () {
+              $(this).dialog("close");
+            }
+          }
+        ]
+      });
+
+      //레이어팝업 UI 생성후 화면에 안보여주기
+      $(".pop_lay_over").dialog({
+        //이벤트 발생했을때 보여주려면 autoOpen : false로 지정해줘야 한다.
+        autoOpen: true,
+        //레이어팝업 넓이
+        width: 540,
+        //뒷배경을 disable 시키고싶다면 true
+        modal: true,
+        //버튼종류
+        buttons: [
+          {
+            //버튼텍스트
+            text: "확인",//확인
+            'class': 'btn_pop_save',
+
+            //클릭이벤트발생시 동작
+            click: function () {
+              chkPic();
+            }
+          },
+          {
+            //버튼텍스트
+            text: "새로고침",//새로고침
+
+            //클릭이벤트발생시 동작
+            click: function (e) {
+              var $popLayOver = $(".pop_lay_over");
+              $popLayOver.find("[name$=picVal]").val("");
+
+              //새 이미지 가져오기
+              $.getJSON("findDdosPic.do", function (data) {
+                if (data.rfDdosPic) {
+                  $.each(data.rfDdosPic, function (key, val) {
+                    if (key == 'picNm') {
+                      $popLayOver.find("[name$=picNm]").attr("src", val);
+                    } else if (key = 'picNo') {
+                      $popLayOver.find("[name$=picNo]").val(val);
+                    }
+                  });
+                }
+              });
+            }
+          }
+        ]
+      });
+
+      $("#picVal").keydown(function (e) {
+        if ((e.keyCode) && (e.keyCode == 13)) {
+          chkPic();
+        }
+      });
+
+      //사진문자, 입력값 비교
+      function chkPic() {
+        var $popLayOver = $(".pop_lay_over");
+        var picVal = $popLayOver.find("[name$=picVal]").val();
+
+        //입력값 없이 저장시
+        if (picVal == '') {
+          alert("그림의 글자를 먼저 입력하세요.");/* 그림의 글자를 먼저 입력하세요. */
+          return;
+        }
+
+        var param = {
+          "picNo": $popLayOver.find("[name$=picNo]").val()
+          , "picVal": picVal
+        };
+        //그림과 입력값 비교
+        $.getJSON("findPicChk.do", param, function (data) {
+          if (data.chkResult == 1) {
+            $("#testForm").submit();
+          } else {
+            alert("입력한 값이 다릅니다.");/* 입력한 값이 다릅니다. */
+            $popLayOver.find("[name$=picVal]").val(""); //입력값 초기화
+            return;
+          }
+        });
+      }
+
+      //Q&A 클릭시 VOC로 이동
+      $("#qna a").click(function (e) {
+        e.preventDefault();
+
+        var url = "https://voc.dankook.ac.kr/tiad/vocm/findVocList.do?_view=ok&vocClsfCd=00001";
+        var option = "width=1024, height=768, top=100 ,left=100, scrollbars=yes, resizable=yes, toolbar=yes, menubar=yes, status=yes";
+        window.open(url, "qna", option);
+      });
+
+      //FAQ 클릭시 VOC로 이동
+      $("#faq a").click(function (e) {
+        e.preventDefault();
+
+        var url = "https://voc.dankook.ac.kr/tiad/vocm/findFaqList.do?_view=ok&vocClsfCd=00001";
+        var option = "width=1024, height=768, top=100 ,left=100, scrollbars=yes, resizable=yes, toolbar=yes, menubar=yes, status=yes";
+        window.open(url, "faq", option);
+      });
+
+      $("ul.sub_nav > li > ul").on("click", "a", function (e) {
+        e.preventDefault();
+
+        var $a = $(this);
+
+        if ($a.text() == "Q&A" || $a.text() == "FAQ") {
+          return;
+        }
+
+        var href = $a.attr("href");
+        $frame.attr("src", (href != "#") ? href : "");
+
+        // 메뉴 타이틀
+        $("h2.aside_tit").text($a.parent().parents("li").find("> a").text());
+
+        // 본문 타이틀
+        $title.show();
+        $("h3.tit_now").text($a.text());
+
+        // breadcrumbs
+        $("ul.gps > li:gt(0)").remove();
+        var breadcrumbs = [$("<li>", { text: $a.parent().parents("li").find("> a").text() }), $("<li>", { text: $a.text() })];
+        $("ul.gps").append(breadcrumbs);
+      });
+
+      if ("" != 'Y') {
+        $("#mainInfo").trigger("click"); //초기화면 설정
+      }
+    });
+  </script>
+</head>
+
+
+<!-- alert, confirm 레이어 -->
+
+<body id="body">
+  <div id="message" style="display: none;">
+    <div id="msgCont">
+      <h4 class="tit_mid">메세지</h4><!-- 메세지 -->
+    </div>
+  </div>
+
+
+
+  <form id="testForm" name="testForm" method="post" action="https://sugang.dankook.ac.kr/saveDdosYn.do"></form>
+
+
+
+  <div id="wrap">
+    <!-- header -->
+    <div id="header">
+      <div class="top_sec" style="height: 70px;">
+        <a href="https://sugang.dankook.ac.kr/">
+          <h1 style="background: none; border: none;"><img src="단국대학교%20수강신청%20시스템_files/top_logo.png"
+              alt="DKU COURSE REGISTRATION SYSTEM" style="width: 150px; position: absolute; top: 0px; left: 20px;"></h1>
+        </a>
+
+        <div class="util_box" style="display: none;">
+          <!-- my_name -->
+          <div class="my_name">
+            <p>서준영(32222197)</p>
+          </div>
+          <!-- //my_name -->
+          <a href="https://sugang.dankook.ac.kr/logoff.do" class="btn_logout"><span class="blind">로그아웃</span></a>
+        </div>
+      </div>
+    </div>
+    <!-- //header -->
+
+    <!-- contents -->
+    <div id="contents" style="min-height: 938px; width: 100% !important; margin: 0 !important; padding: 0 !important;">
+      <!-- aside -->
+      <!-- Sidebar removed as per user request -->
+      <!-- //aside -->
+
+      <!-- cont -->
+      <div class="cont" style="width: 100% !important; margin: 0 !important; float: none !important;">
+        <!-- 타이틀 -->
+        <div class="section_top_tit" style="display: block;">
+          <!-- 현재위치 0429 삭제요청
+          <ul class="gps">
+              <li class="btn_clip"><a href="#" title="url복사"><img src="images/btn/btn_clip.gif" alt="url복사" /></a></li>
+              <li class="home"><span class="blind">home</span></li>
+              <li>수강신청</li>
+              <li>수강신청</li>
+          </ul>
+           //현재위치 -->
+
+          <h3 class="tit_now tit_school">수강신청</h3>
+        </div>
+        <!-- //타이틀 -->
+        <iframe frameborder="0" style="width: 100%; height: 1200px; border: 0; overflow: hidden;" scrolling="yes"
+          src="단국대학교%20수강신청%20시스템_files/findTkcrsApl.html"></iframe>
+      </div>
+      <!-- //cont -->
+    </div>
+    <!-- //contents -->
+
+    <!-- footer -->
+    <div id="footer">
+      <div class="addr_box">
+        <p class="addr">죽전캠퍼스 경기도 용인시 수지구 죽전로 152 (우)16890 / 천안캠퍼스 충남 천안시 동남구 단대로 119 (우)31116</p>
+        <!-- 죽전캠퍼스 경기도 용인시 수지구 죽전로 152 (우)448-701 / 천안캠퍼스 충남 천안시 동남구 단대로 119 (우)330-714  -->
+        <p>Copyright(c) 2015 BY DANKOOK UNIVERSITY. All rights reserved.</p>
+        <!-- Copyright(c) 2015 BY DANKOOK UNIVERSITY. All rights reserved.  -->
+      </div>
+    </div>
+    <!-- //footer -->
+  </div>
+
+  <div class="glasp-extension-toaster"
+    style="display: block; width: 320px; margin: unset; padding: unset; border: unset; border-radius: unset; outline: unset; background-color: unset; box-shadow: unset; position: fixed; top: 40px; right: 24px; z-index: 9999;">
+    <template shadowrootmode="open">
+      <div class="glasp-extension" style="font-family: inherit;"></div>
+    </template>
+  </div>
+</body>
+<div class="glasp-extension"
+  style="display: block; width: unset; margin: unset; padding: unset; border: unset; border-radius: unset; outline: unset; background-color: unset; box-shadow: unset; position: fixed; bottom: 16px; right: 16px; z-index: 9999;">
+  <div class="glasp-extension" style="font-family: inherit;"></div>
+</div>
+
+</html>
