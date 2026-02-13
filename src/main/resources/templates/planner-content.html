@@ -1,54 +1,7 @@
 <th:block th:fragment="plannerContent" xmlns:th="http://www.thymeleaf.org">
-  <script type="text/javascript">
-    var aplResult = "";
-
-    if ("" != "" && aplResult == "") {
-      $.alert("", 'selectSubj()');
-    }
-
-    if (aplResult != "") {
-      $.confirm("", 'reSend()', 'selectSubj()');
-    }
-
-    if ("" == "Y") {
-      parent.location.replace("main.do");
-    }
-    function reSend() {
-      var param = {
-        "subjId": ""
-        , "subjNm": ""
-        , "dvclsNb": ""
-        , "opOrgid": ""
-        , "rpcrsObjYy": ""
-        , "rpcrsObjSemCd": ""
-        , "rpcrsObjSemNm": ""
-        , "rpcrsObjSubjId": ""
-        , "rpcrsObjSubjNm": ""
-        , "rpcrsGrade": ""
-        , "tabIndex": ""
-        , "stepCnt": "2"
-      };
-      $.submit("saveTkcrsApl.do", param);
-    }
-
-    var idx = 0;
-    var chk = "";
-
-
-    function tkcrsDel() {
-      var delIdx = idx * 2;
-      var param = {
-        "opOrgid": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=opOrgid]").val()
-        , "subjId": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=subjId]").val()
-        , "subjNm": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=subjNm]").val()
-        , "dvclsNb": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=dvclsNb]").val()
-        , "webAplDelPsblYn": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=webAplDelPsblYn]").val()
-        , "tkcrsWdPsblYn": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=tkcrsWdPsblYn]").val()
-        , "sznDtlWokId": $("#tkcrsAplTbl tbody").find("tr").eq(delIdx).find("[name$=sznDtlWokId]").val()
-        , "tabIndex": $("ul> .ui-tabs-active").index()
-      };
-      $.submit("deleteTkcrsApl.do", param);
-    }
+  <script th:inline="javascript" type="text/javascript">
+    var flashMessage = /*[[${message}]]*/ "";
+    var studentId = /*[[${studentId}]]*/ "202600000";
 
     function selectSubj() {
       if ($("ul> .ui-tabs-active").index() == 1) {
@@ -56,307 +9,102 @@
       }
     }
 
-    $(document).ready(function () {
-      var plannerStateKey = "sugangPlannerStateV1";
+    function submitPost(url, params) {
+      var elements = "";
+      $.each(params, function (key, value) {
+        elements += "<input type='hidden' name='" + key + "' value='" + value + "'>";
+      });
+      $("<form method='post' action='" + url + "'>" + elements + "</form>").appendTo("body").submit().remove();
+    }
 
-      $(".tab_header a:eq()").trigger("click");
+    function dayToIndex(day) {
+      if (day === "월") return 1;
+      if (day === "화") return 2;
+      if (day === "수") return 3;
+      if (day === "목") return 4;
+      if (day === "금") return 5;
+      if (day === "토") return 6;
+      return -1;
+    }
 
-      if ($("ul> .ui-tabs-active").index() == 1) {
-        if ("" == "" && "" == "") {
-          $("#subjId").select();
-        }
-      }
-      function getDayIndex(dayChar) {
-        if (dayChar === "월") return 1;
-        if (dayChar === "화") return 2;
-        if (dayChar === "수") return 3;
-        if (dayChar === "목") return 4;
-        if (dayChar === "금") return 5;
-        if (dayChar === "토") return 6;
-        return -1;
-      }
+    function parseScheduleSlots(scheduleText) {
+      var slots = [];
+      if (!scheduleText) return slots;
 
-      function parseScheduleSlots(scheduleText) {
-        var slots = [];
-        if (!scheduleText) return slots;
+      var timePart = scheduleText.split("(")[0];
+      var blocks = timePart.split("/");
+      for (var i = 0; i < blocks.length; i++) {
+        var block = $.trim(blocks[i]);
+        if (!block) continue;
 
-        var timePart = scheduleText.split("(")[0];
-        var blocks = timePart.split("/");
-        for (var i = 0; i < blocks.length; i++) {
-          var block = $.trim(blocks[i]);
-          if (!block) continue;
+        var day = block.charAt(0);
+        var dayIndex = dayToIndex(day);
+        if (dayIndex < 0) continue;
 
-          var dayChar = block.charAt(0);
-          var dayIndex = getDayIndex(dayChar);
-          if (dayIndex < 0) continue;
-
-          var periodText = block.substring(1);
-          var periods = periodText.split(",");
-          for (var j = 0; j < periods.length; j++) {
-            var p = parseInt($.trim(periods[j]), 10);
-            if (!isNaN(p)) {
-              slots.push(dayIndex + "-" + p);
-            }
+        var periods = block.substring(1).split(",");
+        for (var j = 0; j < periods.length; j++) {
+          var period = parseInt($.trim(periods[j]), 10);
+          if (!isNaN(period)) {
+            slots.push(dayIndex + "-" + period);
           }
         }
-        return slots;
       }
+      return slots;
+    }
 
-      function hasScheduleConflict(scheduleText) {
-        var newSlots = parseScheduleSlots(scheduleText);
-        if (newSlots.length === 0) return false;
+    function toggleTimetable(scheduleText, active) {
+      var slots = parseScheduleSlots(scheduleText);
+      for (var i = 0; i < slots.length; i++) {
+        var parts = slots[i].split("-");
+        var dayIndex = parseInt(parts[0], 10);
+        var period = parseInt(parts[1], 10);
+        if (isNaN(dayIndex) || isNaN(period)) continue;
 
-        var slotMap = {};
-        for (var i = 0; i < newSlots.length; i++) {
-          slotMap[newSlots[i]] = true;
-        }
-
-        var conflict = false;
-        $("#tkcrsAplTbl tbody tr[data-subj-id]").each(function () {
-          var existingSchedule = $(this).attr("data-schedule");
-          var existingSlots = parseScheduleSlots(existingSchedule);
-          for (var j = 0; j < existingSlots.length; j++) {
-            if (slotMap[existingSlots[j]]) {
-              conflict = true;
-              return false;
-            }
-          }
-          if (conflict) {
-            return false;
-          }
-        });
-        return conflict;
-      }
-
-      function setClosedState($row, isClosed) {
-        var $font = $row.find("td").eq(6).find("font");
-        if (isClosed) {
-          $font.text("Y").css("color", "red");
+        var $row = $("#tkcrsAplTmtblTbl tbody tr").eq(period - 1);
+        var $cell = $row.find("td").eq(dayIndex);
+        if (active) {
+          $cell.addClass("cell_select");
+          $cell.find("input[type='hidden']").val("1");
         } else {
-          $font.text("N").css("color", "#0a6b1e");
+          $cell.removeClass("cell_select");
+          $cell.find("input[type='hidden']").val("");
         }
       }
+    }
 
-      function toggleTimetable(scheduleText, active) {
-        if (!scheduleText) return;
+    function refreshTimetableHighlights() {
+      $("#tkcrsAplTmtblTbl tbody td").removeClass("cell_select");
+      $("#tkcrsAplTmtblTbl tbody td input[type='hidden']").val("");
 
-        var slots = parseScheduleSlots(scheduleText);
-        for (var i = 0; i < slots.length; i++) {
-          var parts = slots[i].split("-");
-          var dayIndex = parseInt(parts[0], 10);
-          var period = parseInt(parts[1], 10);
-          if (isNaN(dayIndex) || isNaN(period)) continue;
+      $("#tkcrsAplTbl tbody tr[data-course-id]").each(function () {
+        var schedule = $(this).attr("data-schedule");
+        toggleTimetable(schedule, true);
+      });
+    }
 
-          var $row = $("#tkcrsAplTmtblTbl tbody tr").eq(period - 1);
-          var $cell = $row.find("td").eq(dayIndex);
-          if (active) {
-            $cell.addClass("cell_select");
-            $cell.find("input[type='hidden']").val("1");
-          } else {
-            $cell.removeClass("cell_select");
-            $cell.find("input[type='hidden']").val("");
-          }
-        }
+    $(document).ready(function () {
+      if (flashMessage) {
+        $.alert(flashMessage, selectSubj);
       }
 
-      function refreshTimetableHighlights() {
-        $("#tkcrsAplTmtblTbl tbody td").removeClass("cell_select");
-        $("#tkcrsAplTmtblTbl tbody td input[type='hidden']").val("");
+      refreshTimetableHighlights();
 
-        $("#tkcrsAplTbl tbody tr[data-subj-id]").each(function () {
-          var schedule = $(this).attr("data-schedule");
-          toggleTimetable(schedule, true);
-        });
-      }
-
-      function updateSummary() {
-        var totalCount = $("#tkcrsAplTbl tbody tr[data-subj-id]").length;
-        var totalCredit = 0;
-
-        $("#tkcrsAplTbl tbody tr[data-subj-id]").each(function () {
-          var credit = parseInt($(this).attr("data-credit"), 10);
-          if (!isNaN(credit)) {
-            totalCredit += credit;
-          }
-        });
-
-        $("#totalCount").text(totalCount);
-        $("#totalCredit").text(totalCredit);
-      }
-
-      function findCourseRow(subjId, dvclsNb) {
-        var $found = $();
-        $("#tabs-1 tbody tr.course-row").each(function () {
-          var $r = $(this);
-          var sid = $r.find("input[name='subjId']").val();
-          var dnb = $r.find("input[name='dvclsNb']").val();
-          if (sid === subjId && dnb === dvclsNb) {
-            $found = $r;
-            return false;
-          }
-        });
-        return $found;
-      }
-
-      function savePlannerState() {
-        try {
-          var applied = [];
-          $("#tkcrsAplTbl tbody tr[data-subj-id]").each(function () {
-            applied.push({
-              subjId: $(this).attr("data-subj-id"),
-              dvclsNb: $(this).attr("data-dvcls-nb")
-            });
-          });
-          localStorage.setItem(plannerStateKey, JSON.stringify({ applied: applied }));
-        } catch (e) {
-        }
-      }
-
-      function restorePlannerState() {
-        try {
-          var raw = localStorage.getItem(plannerStateKey);
-          if (!raw) return;
-          var parsed = JSON.parse(raw);
-          if (!parsed || !parsed.applied || !parsed.applied.length) return;
-
-          for (var i = 0; i < parsed.applied.length; i++) {
-            var item = parsed.applied[i];
-            if (!item || !item.subjId || !item.dvclsNb) continue;
-            var $courseRow = findCourseRow(item.subjId, item.dvclsNb);
-            if ($courseRow.length) {
-              addCourseByRow($courseRow, { silent: true, skipSave: true });
-            }
-          }
-          savePlannerState();
-        } catch (e) {
-        }
-      }
-
-      function addCourseByRow($row, options) {
-        options = options || {};
-        var subjId = $row.find("input[name='subjId']").val();
-        var subjNm = $row.find("input[name='subjNm']").val();
-        var dvclsNb = $row.find("input[name='dvclsNb']").val();
-        var opOrgid = $row.find("input[name='opOrgid']").val();
-        var credit = $.trim($row.find("td").eq(3).text());
-        var professor = $.trim($row.find("td").eq(4).text());
-        var schedule = $.trim($row.find("td").eq(5).text());
-        var closeYn = $.trim($row.find("td").eq(6).text());
-        var applied = parseInt($.trim($row.find("td").eq(7).text()), 10);
-        var limit = parseInt($.trim($row.find("td").eq(8).text()), 10);
-
-        if (closeYn === "Y" || (!isNaN(applied) && !isNaN(limit) && applied >= limit)) {
-          if (!options.silent) {
-            $.alert("마감된 강좌입니다.");
-          }
-          return;
-        }
-
-        if ($("#tkcrsAplTbl tbody tr[data-subj-id='" + subjId + "'][data-dvcls-nb='" + dvclsNb + "']").length > 0) {
-          if (!options.silent) {
-            $.alert("이미 신청된 과목입니다.");
-          }
-          return;
-        }
-
-        if (hasScheduleConflict(schedule)) {
-          if (!options.silent) {
-            $.alert("시간표가 중복되는 과목은 신청할 수 없습니다.");
-          }
-          return;
-        }
-
-        $("#emptyAppRow").remove();
-
-        var row1 = ""
-          + "<tr data-subj-id='" + subjId + "' data-dvcls-nb='" + dvclsNb + "' data-schedule='" + schedule + "' data-credit='" + credit + "'>"
-          + "<td rowspan='2'>"
-          + "<a href='javascript:void(0);' class='btn btn_inner btn_del'><span class='btn_txt'>삭제</span></a>"
-          + "<input type='hidden' name='idx' value='1'>"
-          + "<input type='hidden' name='opOrgid' value='" + opOrgid + "'>"
-          + "<input type='hidden' name='subjId' value='" + subjId + "'>"
-          + "<input type='hidden' name='subjNm' value='" + subjNm + "'>"
-          + "<input type='hidden' name='dvclsNb' value='" + dvclsNb + "'>"
-          + "<input type='hidden' name='webAplDelPsblYn' value='1'>"
-          + "<input type='hidden' name='tkcrsWdPsblYn' value='1'>"
-          + "<input type='hidden' name='sznDtlWokId' value=''>"
-          + "<input type='hidden' name='detMngtDscCd' value=''>"
-          + "</td>"
-          + "<td>죽전</td>"
-          + "<td>" + subjId + "</td>"
-          + "<td>" + dvclsNb + "</td>"
-          + "<td class='ta_l'>" + subjNm + "</td>"
-          + "<td>" + credit + "</td>"
-          + "<td>" + professor + "</td>"
-          + "<td></td>"
-          + "<td>대면수업</td>"
-          + "</tr>";
-
-        var row2 = "<tr data-subj-id-detail='" + subjId + "'><td colspan='8' class='ta_l'>" + schedule + "</td></tr>";
-        $("#tkcrsAplTbl tbody").append(row1 + row2);
-        refreshTimetableHighlights();
-
-        if (!isNaN(applied)) {
-          var nextApplied = applied + 1;
-          $row.find("td").eq(7).text(nextApplied);
-          if (!isNaN(limit)) {
-            setClosedState($row, nextApplied >= limit);
-          }
-        }
-
-        updateSummary();
-        if (!options.skipSave) {
-          savePlannerState();
-        }
-      }
-
-      // 더블클릭시 수강신청
       $("#tabs-1 tbody").on("dblclick", "tr.course-row", function () {
-        addCourseByRow($(this));
+        var courseId = $(this).find("input[name='courseId']").val();
+        if (!courseId) return;
+        submitPost("saveTkcrsApl.do", {studentId: studentId, courseId: courseId});
       });
 
-      // 신청내역 삭제
       $("#tkcrsAplTbl tbody").on("click", ".btn_del", function (e) {
         e.preventDefault();
-        var $row1 = $(this).closest("tr");
-        var $row2 = $row1.next("tr");
-        var schedule = $row1.attr("data-schedule");
-        var subjId = $row1.attr("data-subj-id");
-        var dvclsNb = $row1.attr("data-dvcls-nb");
+        var courseId = $(this).closest("tr").attr("data-course-id");
+        if (!courseId) return;
 
         $.confirm("삭제하시겠습니까?", function () {
-          $row1.remove();
-          $row2.remove();
-          refreshTimetableHighlights();
-
-          $("#tabs-1 tbody tr.course-row").each(function () {
-            var $courseRow = $(this);
-            var courseSubjId = $courseRow.find("input[name='subjId']").val();
-            var courseDvclsNb = $courseRow.find("input[name='dvclsNb']").val();
-            if (courseSubjId === subjId && courseDvclsNb === dvclsNb) {
-              var applied = parseInt($.trim($courseRow.find("td").eq(7).text()), 10);
-              var limit = parseInt($.trim($courseRow.find("td").eq(8).text()), 10);
-              if (!isNaN(applied) && applied > 0) {
-                var nextApplied = applied - 1;
-                $courseRow.find("td").eq(7).text(nextApplied);
-                if (!isNaN(limit)) {
-                  setClosedState($courseRow, nextApplied >= limit);
-                }
-              }
-              return false;
-            }
-          });
-
-          if ($("#tkcrsAplTbl tbody tr[data-subj-id]").length === 0) {
-            $("#tkcrsAplTbl tbody").append("<tr id='emptyAppRow'><td colspan='9' class='ta_c'>신청 내역이 없습니다.</td></tr>");
-          }
-          updateSummary();
-          savePlannerState();
-          selectSubj();
+          submitPost("deleteTkcrsApl.do", {studentId: studentId, courseId: courseId});
         }, selectSubj);
       });
 
-      // table내에 있는 a click이벤트
       $("#subjTkcrsApl a").click(function (e) {
         e.preventDefault();
         var url = "findGsLctTmtbl.do";
@@ -367,51 +115,30 @@
       $("#tabs-2 input").keydown(function (e) {
         if (e.keyCode == 13) {
           if ($("#subjId").val() == "" || $("#subjId").val() == null) {
-            $.alert("교과목번호를 먼저 입력해 주십시오.", selectSubj); //교과목번호를 먼저 입력해 주십시오.
+            $.alert("교과목번호를 먼저 입력해 주십시오.", selectSubj);
             return false;
           } else if ($("#dvclsNb").val() == "" || $("#dvclsNb").val() == "") {
-            $.alert("분반번호를 입력해 주십시오.", selectSubj); //분반번호를 입력해 주십시오.
+            $.alert("분반번호를 입력해 주십시오.", selectSubj);
             return false;
           }
-          var param = {
-            "subjId": $("#subjId").val()
-            , "dvclsNb": $("#dvclsNb").val()
-            , "opOrgid": "2000000989"
-            , "tabIndex": $("ul> .ui-tabs-active").index()
-          };
-          $.submit("findSubjInfo.do", param);
+          submitPost("findSubjInfo.do", {
+            subjId: $("#subjId").val(),
+            dvclsNb: $("#dvclsNb").val(),
+            opOrgid: "2000000989",
+            tabIndex: $("ul> .ui-tabs-active").index()
+          });
         }
       });
 
-      $("#tabBtn2").click(function (e) {
-        $("#subjId").select();
-      });
-
-      $("#subjId").click(function (e) {
-        $(this).select();
-      });
-
-      $("#dvclsNb").click(function (e) {
-        $(this).select();
-      });
-
-      $("#subjId").keyup(function (e) {
+      $("#tabBtn2").click(function () { $("#subjId").select(); });
+      $("#subjId").click(function () { $(this).select(); });
+      $("#dvclsNb").click(function () { $(this).select(); });
+      $("#subjId").keyup(function () {
         if ($(this).val().length == 6) {
           $("#dvclsNb").click();
         }
       });
-
-      restorePlannerState();
     });
-
-    function apl() {
-      var param = {
-        "subjId": $("#subjId").val()
-        , "dvclsNb": $("#dvclsNb").val()
-        , "opOrgid": $("#opOrgid").val()
-      };
-      $.submit("findSubjInfo.do", param);
-    }
   </script>
   <div style="width: 95%; max-width: 1600px; margin: 0 auto; overflow: hidden;">
     <div class="f_l w_70">
@@ -574,186 +301,27 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr class="course-row" style="cursor: pointer;">
+                  <tr class="course-row" style="cursor: pointer;" th:each="course : ${courses}">
                     <td>
-                      <input type="hidden" name="subjId" value="329810">
-                      <input type="hidden" name="subjNm" value="데이터베이스">
-                      <input type="hidden" name="dvclsNb" value="1">
+                      <input type="hidden" name="courseId" th:value="${course.id}">
+                      <input type="hidden" name="subjId" th:value="${course.code}">
+                      <input type="hidden" name="subjNm" th:value="${course.name}">
+                      <input type="hidden" name="dvclsNb" th:value="${course.divisionNumber}">
                       <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>329810</span>
+                      <span th:text="${course.code}">329810</span>
                     </td>
-                    <td class="ta_c">1</td>
-                    <td class="ta_l">데이터베이스</td>
-                    <td class="ta_c">3</td>
-                    <td>나연묵</td>
-                    <td class="ta_l">금1,2,3(2공105)</td>
+                    <td class="ta_c" th:text="${course.divisionNumber}">1</td>
+                    <td class="ta_l" th:text="${course.name}">데이터베이스</td>
+                    <td class="ta_c" th:text="${course.credit}">3</td>
+                    <td th:text="${course.professor}">나연묵</td>
+                    <td class="ta_l" th:text="${course.schedule}">금1,2,3(2공105)</td>
                     <td>
-                      <font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font>
+                      <font size="2px" style="font-weight: bold"
+                            th:styleappend="${course.full ? 'color:red;' : 'color:#0a6b1e;'}"
+                            th:text="${course.full ? 'Y' : 'N'}">N</font>
                     </td>
-                    <td>12</td>
-                    <td>40</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="340112">
-                      <input type="hidden" name="subjNm" value="운영체제">
-                      <input type="hidden" name="dvclsNb" value="1">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>340112</span>
-                    </td>
-                    <td class="ta_c">1</td>
-                    <td class="ta_l">운영체제</td>
-                    <td class="ta_c">3</td>
-                    <td>김태현</td>
-                    <td class="ta_l">월4,5/수4,5(1공201)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>28</td>
-                    <td>45</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="340201">
-                      <input type="hidden" name="subjNm" value="알고리즘">
-                      <input type="hidden" name="dvclsNb" value="2">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>340201</span>
-                    </td>
-                    <td class="ta_c">2</td>
-                    <td class="ta_l">알고리즘</td>
-                    <td class="ta_c">3</td>
-                    <td>이선영</td>
-                    <td class="ta_l">화2,3/목2,3(2공310)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>17</td>
-                    <td>35</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="340305">
-                      <input type="hidden" name="subjNm" value="컴퓨터네트워크">
-                      <input type="hidden" name="dvclsNb" value="1">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>340305</span>
-                    </td>
-                    <td class="ta_c">1</td>
-                    <td class="ta_l">컴퓨터네트워크</td>
-                    <td class="ta_c">3</td>
-                    <td>박지훈</td>
-                    <td class="ta_l">월1,2/수1,2(1공104)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>31</td>
-                    <td>50</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="340410">
-                      <input type="hidden" name="subjNm" value="인공지능">
-                      <input type="hidden" name="dvclsNb" value="1">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>340410</span>
-                    </td>
-                    <td class="ta_c">1</td>
-                    <td class="ta_l">인공지능</td>
-                    <td class="ta_c">3</td>
-                    <td>최민수</td>
-                    <td class="ta_l">화6,7/목6,7(소프트401)</td>
-                    <td><font size="2px" style="font-weight: bold; color:red;">Y</font></td>
-                    <td>40</td>
-                    <td>40</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="341120">
-                      <input type="hidden" name="subjNm" value="소프트웨어공학">
-                      <input type="hidden" name="dvclsNb" value="3">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>341120</span>
-                    </td>
-                    <td class="ta_c">3</td>
-                    <td class="ta_l">소프트웨어공학</td>
-                    <td class="ta_c">3</td>
-                    <td>한지원</td>
-                    <td class="ta_l">월10,11/수10,11(공학507)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>22</td>
-                    <td>45</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="341230">
-                      <input type="hidden" name="subjNm" value="웹프로그래밍">
-                      <input type="hidden" name="dvclsNb" value="2">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>341230</span>
-                    </td>
-                    <td class="ta_c">2</td>
-                    <td class="ta_l">웹프로그래밍</td>
-                    <td class="ta_c">3</td>
-                    <td>윤수빈</td>
-                    <td class="ta_l">화10,11/목10,11(소프트310)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>19</td>
-                    <td>40</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="341340">
-                      <input type="hidden" name="subjNm" value="정보보호">
-                      <input type="hidden" name="dvclsNb" value="1">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>341340</span>
-                    </td>
-                    <td class="ta_c">1</td>
-                    <td class="ta_l">정보보호</td>
-                    <td class="ta_c">3</td>
-                    <td>정우성</td>
-                    <td class="ta_l">수6,7/금6,7(2공405)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>21</td>
-                    <td>38</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="341450">
-                      <input type="hidden" name="subjNm" value="머신러닝">
-                      <input type="hidden" name="dvclsNb" value="1">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>341450</span>
-                    </td>
-                    <td class="ta_c">1</td>
-                    <td class="ta_l">머신러닝</td>
-                    <td class="ta_c">3</td>
-                    <td>김하늘</td>
-                    <td class="ta_l">월13,14/수13,14(소프트502)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>26</td>
-                    <td>42</td>
-                    <td></td>
-                  </tr>
-                  <tr class="course-row" style="cursor: pointer;">
-                    <td>
-                      <input type="hidden" name="subjId" value="341560">
-                      <input type="hidden" name="subjNm" value="클라우드컴퓨팅">
-                      <input type="hidden" name="dvclsNb" value="1">
-                      <input type="hidden" name="opOrgid" value="2000000989">
-                      <span>341560</span>
-                    </td>
-                    <td class="ta_c">1</td>
-                    <td class="ta_l">클라우드컴퓨팅</td>
-                    <td class="ta_c">3</td>
-                    <td>신동혁</td>
-                    <td class="ta_l">화16,17/목16,17(공학303)</td>
-                    <td><font size="2px" style="font-weight: bold; color:#0a6b1e;">N</font></td>
-                    <td>14</td>
-                    <td>36</td>
+                    <td th:text="${course.appliedCount}">0</td>
+                    <td th:text="${course.limitCount}">0</td>
                     <td></td>
                   </tr>
                 </tbody>
@@ -822,9 +390,27 @@
               </tr>
             </thead>
             <tbody>
-              <tr id="emptyAppRow">
+              <tr id="emptyAppRow" th:if="${#lists.isEmpty(applications)}">
                 <td colspan="9" class="ta_c">신청 내역이 없습니다.</td>
               </tr>
+              <th:block th:each="app : ${applications}">
+                <tr th:attr="data-subj-id=${app.course.code},data-dvcls-nb=${app.course.divisionNumber},data-course-id=${app.course.id},data-schedule=${app.course.schedule},data-credit=${app.course.credit}">
+                  <td rowspan="2">
+                    <a href="javascript:void(0);" class="btn btn_inner btn_del"><span class="btn_txt">삭제</span></a>
+                  </td>
+                  <td>죽전</td>
+                  <td th:text="${app.course.code}">329810</td>
+                  <td th:text="${app.course.divisionNumber}">1</td>
+                  <td class="ta_l" th:text="${app.course.name}">데이터베이스</td>
+                  <td th:text="${app.course.credit}">3</td>
+                  <td th:text="${app.course.professor}">나연묵</td>
+                  <td></td>
+                  <td>대면수업</td>
+                </tr>
+                <tr>
+                  <td colspan="8" class="ta_l" th:text="${app.course.schedule}">금1,2,3(2공105)</td>
+                </tr>
+              </th:block>
             </tbody>
           </table>
         </div>
@@ -845,9 +431,9 @@
             <tbody>
               <tr>
                 <th scope="row">신청과목 수</th><!-- 신청과목 수 -->
-                <td class="ta_c" id="totalCount">0</td>
+                <td class="ta_c" id="totalCount" th:text="${#lists.size(applications)}">0</td>
                 <th scope="row">신청학점</th><!-- 신청학점 -->
-                <td class="ta_c" id="totalCredit">0</td>
+                <td class="ta_c" id="totalCredit" th:text="${totalCredit}">0</td>
 
               </tr>
             </tbody>

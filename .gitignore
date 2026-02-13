@@ -44,5 +44,5 @@ Thumbs.db
 !.env.example
 
 # Local runtime data and source snapshots
-db_data/
-sugang/
+/db_data/
+/sugang/
