@@ -112,4 +112,8 @@ public class Course {
             this.appliedCount = this.appliedCount - 1;
         }
     }
+
+    public void syncAppliedCount(int appliedCount) {
+        this.appliedCount = Math.max(appliedCount, 0);
+    }
 }

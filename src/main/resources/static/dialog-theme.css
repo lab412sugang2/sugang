@@ -1,0 +1,71 @@
+.ui-dialog.dku-dialog {
+  border: 1px solid #4f6fb8 !important;
+  box-shadow: 0 8px 24px rgba(30, 54, 108, 0.28);
+}
+
+.ui-dialog.dku-dialog .ui-dialog-titlebar {
+  height: auto !important;
+  padding: 0 !important;
+  background: linear-gradient(#587ac7, #4264b3) !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-title {
+  margin: 0 !important;
+  padding: 14px 16px !important;
+  height: auto !important;
+  background: none !important;
+  color: #ffffff !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-titlebar-close {
+  top: 18px !important;
+  right: 16px !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-content {
+  padding: 22px 24px 18px !important;
+  color: #2f3b55 !important;
+  font-size: 13px !important;
+  line-height: 1.6 !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-buttonpane {
+  padding: 0 0 18px !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-buttonpane button {
+  margin: 0 0 0 8px !important;
+  height: 34px !important;
+  border: 1px solid #9eabc8 !important;
+  border-radius: 3px !important;
+  background: #eef2fa !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-buttonpane button:first-child {
+  margin-left: 0 !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-buttonpane button .ui-button-text {
+  min-width: 84px !important;
+  padding: 0 18px !important;
+  line-height: 32px !important;
+  background: none !important;
+  color: #324a7d !important;
+  font-weight: 700 !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-buttonpane button.btn_pop_save {
+  border-color: #3558a8 !important;
+  background: linear-gradient(#4b71cd, #365cae) !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-buttonpane button.btn_pop_save .ui-button-text {
+  color: #ffffff !important;
+}
+
+.ui-dialog.dku-dialog .ui-dialog-buttonpane button.dku-btn-no {
+  border-color: #adb7cc !important;
+  background: #edf1f8 !important;
+}

@@ -13,4 +13,6 @@ public interface CourseApplicationRepository extends JpaRepository<CourseApplica
     boolean existsByStudentIdAndCourseId(String studentId, Long courseId);
 
     Optional<CourseApplication> findByStudentIdAndCourseId(String studentId, Long courseId);
+
+    int countByCourseId(Long courseId);
 }

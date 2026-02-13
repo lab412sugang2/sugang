@@ -20,8 +20,13 @@ $.alert = function (message, callback) {
     $messageBox.dialog({
         width: 402,
         height: 200,
+        title: "알림",
+        dialogClass: "dku-dialog dku-alert",
         position: {my: "center", at: "center", of: window.top},
         modal: true,
+        open: function () {
+            $(this).parent().find(".ui-dialog-buttonpane button:first").focus();
+        },
         buttons: [
             {
                 text: "확인",
@@ -50,11 +55,16 @@ $.confirm = function (message, okCallback, cancelCallback) {
     $messageBox.dialog({
         width: 402,
         height: 250,
+        title: "수강신청 확인",
+        dialogClass: "dku-dialog dku-confirm",
         position: {my: "center", at: "center", of: window.top},
         modal: true,
+        open: function () {
+            $(this).parent().find(".ui-dialog-buttonpane button:first").focus();
+        },
         buttons: [
             {
-                text: "확인",
+                text: "예",
                 "class": 'btn_pop_save',
                 click: function() {
                     $(this).dialog("close");
@@ -70,7 +80,8 @@ $.confirm = function (message, okCallback, cancelCallback) {
                 }
             },
             {
-                text: "취소",
+                text: "아니오",
+                "class": "dku-btn-no",
                 click: function() {
                     $(this).dialog("close");
                     invokeCallback(cancelCallback);

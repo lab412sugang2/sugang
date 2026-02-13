@@ -86,6 +86,26 @@ class PlannerServiceValidationTest {
         assertEquals(1, reloaded.get().getAppliedCount());
     }
 
+    @Test
+    void deleteShouldDecreaseOnlyDeletedCourseCountImmediately() {
+        String studentId = "delete-count-student";
+
+        Course first = createCourse("DEL101", 1, "월7,8(401)");
+        Course second = createCourse("DEL102", 1, "화7,8(402)");
+
+        plannerService.applyCourse(studentId, first.getId());
+        plannerService.applyCourse(studentId, second.getId());
+
+        plannerService.deleteCourse(studentId, first.getId());
+
+        Course firstAfterDelete = courseRepository.findById(first.getId()).orElseThrow();
+        Course secondAfterDelete = courseRepository.findById(second.getId()).orElseThrow();
+        assertEquals(0, firstAfterDelete.getAppliedCount());
+        assertEquals(1, secondAfterDelete.getAppliedCount());
+        assertFalseApplyExists(studentId, first.getId());
+        assertTrue(courseApplicationRepository.existsByStudentIdAndCourseId(studentId, second.getId()));
+    }
+
     private Course createCourse(String code, int division, String schedule) {
         Course course = new Course(code, division, code + "-NAME", 3, "교수", schedule, 30, 0, false);
         return courseRepository.save(course);

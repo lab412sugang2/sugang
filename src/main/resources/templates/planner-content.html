@@ -92,7 +92,9 @@
       $("#tabs-1 tbody").on("dblclick", "tr.course-row", function () {
         var courseId = $(this).find("input[name='courseId']").val();
         if (!courseId) return;
-        submitPost("saveTkcrsApl.do", {studentId: studentId, courseId: courseId});
+        $.confirm("이 과목을 신청하시겠습니까?", function () {
+          submitPost("saveTkcrsApl.do", {studentId: studentId, courseId: courseId});
+        }, selectSubj);
       });
 
       $("#tkcrsAplTbl tbody").on("click", ".btn_del", function (e) {
@@ -316,9 +318,9 @@
                     <td th:text="${course.professor}">나연묵</td>
                     <td class="ta_l" th:text="${course.schedule}">금1,2,3(2공105)</td>
                     <td>
-                      <font size="2px" style="font-weight: bold"
-                            th:styleappend="${course.full ? 'color:red;' : 'color:#0a6b1e;'}"
-                            th:text="${course.full ? 'Y' : 'N'}">N</font>
+                      <span style="font-size: 12px;"
+                            th:style="${course.full ? 'font-size:12px;font-weight:bold;color:red;' : 'font-size:12px;font-weight:bold;color:#366add;'}"
+                            th:text="${course.full ? 'Y' : 'N'}">N</span>
                     </td>
                     <td th:text="${course.appliedCount}">0</td>
                     <td th:text="${course.limitCount}">0</td>
