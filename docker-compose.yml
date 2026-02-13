@@ -1,0 +1,14 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    container_name: ${MYSQL_CONTAINER_NAME:-sugang-db}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-sugang}
+      TZ: ${TZ:-Asia/Seoul}
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - ${MYSQL_DATA_DIR:-./db_data}:/var/lib/mysql

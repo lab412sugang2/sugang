@@ -1,0 +1,48 @@
+# Compiled Java files
+*.class
+*.jar
+*.war
+*.ear
+
+# Logs
+logs/
+*.log
+
+# Build directories
+build/
+out/
+target/
+
+# IDE files
+.idea/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Gradle files
+.gradle/
+gradle-wrapper.jar
+
+# Mac files
+.DS_Store
+
+# IntelliJ files
+*.iml
+*.iws
+.idea
+out
+
+# Windows files
+Thumbs.db
+
+# Local environment secrets
+.env
+.env.*
+!.env.example
+
+# Local runtime data and source snapshots
+db_data/
+sugang/

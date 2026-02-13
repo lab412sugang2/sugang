@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>단국대학교 수강신청 시스템</title>
+
+  <link rel="shortcut icon" type="image/x-icon" th:href="@{/top_logo.png}" href="top_logo.png">
+
+  <link rel="stylesheet" th:href="@{/jquery-ui.min.css}" href="jquery-ui.min.css">
+  <link rel="stylesheet" th:href="@{/style.min.css}" href="style.min.css">
+
+  <script th:src="@{/jquery-1.11.1.min.js}" src="jquery-1.11.1.min.js"></script>
+  <script th:src="@{/placeholders.min.js}" src="placeholders.min.js"></script>
+  <script th:src="@{/jquery-ui.min.js}" src="jquery-ui.min.js"></script>
+  <script th:src="@{/common.js}" src="common.js"></script>
+  <script th:src="@{/style.min.js}" src="style.min.js"></script>
+
+  <script type="text/javascript">
+    var errorMessage = "";
+    if (errorMessage != "") {
+      alert("");
+    }
+
+    $(document).ready(function () {
+      $(document).on('keydown', function (e) {
+        if (e.keyCode === 27) {
+          location.replace("/");
+        }
+      });
+
+      $("#rfndBaTbl").find("[name$=bankCd]").val("020");
+      if (("" == "Y")) {
+        $("#rfndBaTbl").find("[name$=bankCd]").val("");
+        $("#rfndBaTbl").find("[name$=ban]").val("");
+        $("#rfndBaTbl").find("[name$=depstNm]").val("");
+        $("#rfndBaTbl").find("[name$=telno]").val("");
+      }
+    });
+  </script>
+</head>
+
+<body id="body">
+<div id="message" style="display: none;">
+  <div id="msgCont">
+    <h4 class="tit_mid">메세지</h4>
+  </div>
+</div>
+
+<form id="testForm" name="testForm" method="post" action="#"></form>
+
+<div id="wrap">
+  <div id="header">
+    <div class="top_sec" style="height: 70px;">
+      <a th:href="@{/}" href="/">
+        <h1 style="background: none; border: none;">
+          <img th:src="@{/top_logo.png}" src="top_logo.png" alt="DKU COURSE REGISTRATION SYSTEM" style="width: 150px; position: absolute; top: 0px; left: 20px;">
+        </h1>
+      </a>
+
+      <div class="util_box" style="display: none;">
+        <div class="my_name">
+          <p>샘플사용자(00000000)</p>
+        </div>
+        <a href="#" class="btn_logout"><span class="blind">로그아웃</span></a>
+      </div>
+    </div>
+  </div>
+
+  <div id="contents" style="min-height: 938px; width: 100% !important; margin: 0 !important; padding: 0 !important;">
+    <div class="cont" style="width: 100% !important; margin: 0 !important; float: none !important;">
+      <div class="section_top_tit" style="display: block;">
+        <h3 class="tit_now tit_school">수강신청</h3>
+      </div>
+
+      <div th:replace="~{planner-content :: plannerContent}"></div>
+    </div>
+  </div>
+
+  <div id="footer">
+    <div class="addr_box">
+      <p class="addr">죽전캠퍼스 경기도 용인시 수지구 죽전로 152 (우)16890 / 천안캠퍼스 충남 천안시 동남구 단대로 119 (우)31116</p>
+      <p>Copyright(c) 2015 BY DANKOOK UNIVERSITY. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+</body>
+</html>
