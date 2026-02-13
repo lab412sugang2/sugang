@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import sugang.entity.Course;
 import sugang.entity.CourseApplication;
+import sugang.exception.CreditLimitExceededException;
+import sugang.exception.TimeConflictException;
 import sugang.repository.CourseApplicationRepository;
 import sugang.repository.CourseRepository;
 
@@ -18,6 +20,7 @@ import java.util.Set;
 public class PlannerService {
 
     public static final String DEFAULT_STUDENT_ID = "202600000";
+    public static final int MAX_APPLICABLE_CREDIT = 19;
 
     private final CourseRepository courseRepository;
     private final CourseApplicationRepository courseApplicationRepository;
@@ -80,15 +83,8 @@ public class PlannerService {
         }
 
         List<CourseApplication> apps = courseApplicationRepository.findByStudentIdOrderByCreatedAtAsc(studentId);
-        Set<String> targetSlots = parseSlots(course.getSchedule());
-        for (CourseApplication app : apps) {
-            Set<String> existingSlots = parseSlots(app.getCourse().getSchedule());
-            for (String slot : existingSlots) {
-                if (targetSlots.contains(slot)) {
-                    throw new IllegalStateException("시간표가 중복되는 과목은 신청할 수 없습니다.");
-                }
-            }
-        }
+        validateCreditLimit(apps, course);
+        validateTimeConflict(apps, course);
 
         courseApplicationRepository.save(new CourseApplication(studentId, course));
         course.increaseAppliedCount();
@@ -136,6 +132,33 @@ public class PlannerService {
         }
 
         return slots;
+    }
+
+    private void validateCreditLimit(List<CourseApplication> apps, Course targetCourse) {
+        int currentCredit = apps.stream().mapToInt(a -> a.getCourse().getCredit()).sum();
+        int nextCredit = currentCredit + targetCourse.getCredit();
+        if (nextCredit > MAX_APPLICABLE_CREDIT) {
+            throw new CreditLimitExceededException("신청가능학점(19학점)을 초과할 수 없습니다.");
+        }
+    }
+
+    private void validateTimeConflict(List<CourseApplication> apps, Course targetCourse) {
+        if (hasTimeConflict(apps, targetCourse)) {
+            throw new TimeConflictException("시간표가 중복되는 과목은 신청할 수 없습니다.");
+        }
+    }
+
+    private boolean hasTimeConflict(List<CourseApplication> apps, Course targetCourse) {
+        Set<String> targetSlots = parseSlots(targetCourse.getSchedule());
+        for (CourseApplication app : apps) {
+            Set<String> existingSlots = parseSlots(app.getCourse().getSchedule());
+            for (String slot : existingSlots) {
+                if (targetSlots.contains(slot)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private int dayToIndex(String day) {

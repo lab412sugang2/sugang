@@ -2,6 +2,8 @@ package sugang.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import sugang.exception.CreditLimitExceededException;
+import sugang.exception.TimeConflictException;
 
 @Service
 public class RegistrationService {
@@ -37,7 +39,7 @@ public class RegistrationService {
         try {
             plannerService.applyCourse(resolvedStudentId, courseId);
             redirectAttributes.addFlashAttribute("message", "신청이 완료되었습니다.");
-        } catch (IllegalArgumentException | IllegalStateException e) {
+        } catch (CreditLimitExceededException | TimeConflictException | IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         }
         return "redirect:/";
