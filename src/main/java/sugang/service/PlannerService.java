@@ -33,6 +33,7 @@ public class PlannerService {
     @PostConstruct
     @Transactional
     public void initSampleCourses() {
+        boolean seeded = false;
         if (courseRepository.count() == 0) {
             List<Course> samples = new ArrayList<>();
             samples.add(new Course("329810", 1, "데이터베이스", 3, "나연묵", "금1,2,3(2공105)", 40, 12, false));
@@ -45,8 +46,18 @@ public class PlannerService {
             samples.add(new Course("341340", 1, "정보보호", 3, "정우성", "수6,7/금6,7(2공405)", 38, 21, false));
             samples.add(new Course("341450", 1, "머신러닝", 3, "김하늘", "월13,14/수13,14(소프트502)", 42, 26, false));
             samples.add(new Course("341560", 1, "클라우드컴퓨팅", 3, "신동혁", "화16,17/목16,17(공학303)", 36, 14, false));
+            samples.add(new Course("349901", 1, "캡스톤디자인실습A", 3, "김연우", "월15,16(공학201)", 1, 0, false));
+            samples.add(new Course("349902", 1, "캡스톤디자인실습B", 3, "박민지", "수15,16(공학202)", 1, 0, false));
 
             courseRepository.saveAll(samples);
+            seeded = true;
+        }
+
+        if (seeded) {
+            courseRepository.findByCodeAndDivisionNumber("349901", 1).ifPresent(course ->
+                    courseApplicationRepository.save(new CourseApplication("seed-closed-1", course)));
+            courseRepository.findByCodeAndDivisionNumber("349902", 1).ifPresent(course ->
+                    courseApplicationRepository.save(new CourseApplication("seed-closed-2", course)));
         }
 
         syncAllAppliedCounts();
