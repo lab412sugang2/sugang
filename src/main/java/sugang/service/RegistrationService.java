@@ -38,7 +38,6 @@ public class RegistrationService {
         String resolvedStudentId = resolveStudentId(studentId);
         try {
             plannerService.applyCourse(resolvedStudentId, courseId);
-            redirectAttributes.addFlashAttribute("message", "신청이 완료되었습니다.");
         } catch (CreditLimitExceededException | TimeConflictException | IllegalArgumentException | IllegalStateException e) {
             redirectAttributes.addFlashAttribute("message", e.getMessage());
         }

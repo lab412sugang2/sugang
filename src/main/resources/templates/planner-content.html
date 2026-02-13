@@ -92,9 +92,7 @@
       $("#tabs-1 tbody").on("dblclick", "tr.course-row", function () {
         var courseId = $(this).find("input[name='courseId']").val();
         if (!courseId) return;
-        $.confirm("이 과목을 신청하시겠습니까?", function () {
-          submitPost("saveTkcrsApl.do", {studentId: studentId, courseId: courseId});
-        }, selectSubj);
+        submitPost("saveTkcrsApl.do", {studentId: studentId, courseId: courseId});
       });
 
       $("#tkcrsAplTbl tbody").on("click", ".btn_del", function (e) {
