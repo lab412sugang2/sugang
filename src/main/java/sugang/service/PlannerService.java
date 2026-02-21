@@ -36,7 +36,7 @@ public class PlannerService {
         boolean seeded = false;
         if (courseRepository.count() == 0) {
             List<Course> samples = new ArrayList<>();
-            samples.add(new Course("329810", 1, "데이터베이스", 3, "나연묵", "금1,2,3(2공105)", 40, 12, false));
+            samples.add(new Course("329810", 1, "데이터베이스", 3, "강지훈", "금1,2,3(2공105)", 40, 12, false));
             samples.add(new Course("340112", 1, "운영체제", 3, "김태현", "월4,5/수4,5(1공201)", 45, 28, false));
             samples.add(new Course("340201", 2, "알고리즘", 3, "이선영", "화2,3/목2,3(2공310)", 35, 17, false));
             samples.add(new Course("340305", 1, "컴퓨터네트워크", 3, "박지훈", "월1,2/수1,2(1공104)", 50, 31, false));
