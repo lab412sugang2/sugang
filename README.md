@@ -20,49 +20,51 @@ docker compose --env-file .env up -d
 
 접속 URL: `http://localhost:8080/`
 
-## 실배포(연습사이트) 빠른 가이드
+## 실배포(연습사이트) 빠른 가이드: Render 무료 + Native(Java)
 
-이 프로젝트는 서버 렌더링(Spring Boot + Thymeleaf)이므로 `백엔드 1개`만 배포하면 됩니다.
+이 프로젝트는 서버 렌더링(Spring Boot + Thymeleaf)이라 Web Service 1개만 배포하면 됩니다.
 
-### 1) 배포 플랫폼
+### 1) Render 서비스 생성
 
-- 추천: `Railway` 또는 `Render`
-- 이유: Docker 기반으로 바로 배포 가능 + 관리형 MySQL 연결 쉬움
+1. Render Dashboard -> `New` -> `Web Service`
+2. GitHub 저장소 연결 후 이 저장소 선택
+3. Region은 `Singapore` 권장
+4. Instance Type은 반드시 `Free`
 
-### 2) 필수 환경변수
+### 2) Build / Start 명령
 
-- `DB_URL` (예: `jdbc:mysql://<host>:3306/sugang?serverTimezone=Asia/Seoul&characterEncoding=UTF-8`)
-- `DB_USERNAME`
-- `DB_PASSWORD`
-- `PORT` (플랫폼이 자동 주입하면 생략 가능)
-- 선택:
-  - `JPA_DDL_AUTO=update`
-  - `JPA_SHOW_SQL=false`
-
-### 3) Docker 이미지 빌드/실행 확인
-
+- Build Command
 ```bash
-docker build -t sugang-local .
-docker run --rm -p 8080:8080 \
-  -e DB_URL='jdbc:mysql://host.docker.internal:3306/sugang?serverTimezone=Asia/Seoul&characterEncoding=UTF-8' \
-  -e DB_USERNAME='root' \
-  -e DB_PASSWORD='your_password' \
-  sugang-local
+./scripts/render-build.sh
 ```
 
-### 4) 플랫폼 배포 절차(공통)
+- Start Command
+```bash
+java -jar build/libs/*.jar
+```
 
-1. GitHub에 코드 push
-2. Railway/Render에서 `New Service` -> `Deploy from GitHub`
-3. Dockerfile 자동 인식 확인
-4. 환경변수(`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`) 입력
-5. 배포 완료 후 발급 URL 접속
+`server.port=${PORT:8080}` 설정이 이미 적용되어 있어 Render가 주입하는 `PORT`를 자동 사용합니다.
+
+### 3) 환경변수
+
+- 연습용 무료 배포라면 필수 없음 (H2 메모리 DB fallback)
+- 필요 시 선택적으로 사용:
+  - `DB_URL`
+  - `DB_USERNAME`
+  - `DB_PASSWORD`
+  - `JPA_DDL_AUTO`
+  - `JPA_SHOW_SQL`
+
+### 4) 배포 후 확인
+
+1. 배포 완료 후 발급된 `https://...onrender.com` 접속
+2. 무료 플랜은 idle 후 첫 접속 시 깨어나는 시간이 있을 수 있음
 
 ### 5) 도메인 연결(선택)
 
-1. 구매한 도메인 DNS에서 `CNAME` 또는 `A` 레코드 추가
-2. 플랫폼 Custom Domain 메뉴에 도메인 등록
-3. SSL(HTTPS) 자동 발급 확인
+1. 도메인 DNS에 `CNAME` 또는 `A` 레코드 추가
+2. Render의 Custom Domain 메뉴에서 도메인 등록
+3. HTTPS 인증서 자동 발급 확인
 
 ## 현재 범위
 
