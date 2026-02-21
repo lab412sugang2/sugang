@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import sugang.service.RegistrationService;
+import jakarta.servlet.http.HttpSession;
 
 @Controller
 public class SugangMockController {
@@ -28,16 +29,16 @@ public class SugangMockController {
 
     @PostMapping("/saveTkcrsApl.do")
     public String saveCourseApplication(@RequestParam("courseId") Long courseId,
-                                        @RequestParam(value = "studentId", required = false) String studentId,
+                                        HttpSession session,
                                         RedirectAttributes redirectAttributes) {
-        return registrationService.applyCourse(studentId, courseId, redirectAttributes);
+        return registrationService.applyCourse(session, courseId, redirectAttributes);
     }
 
     @PostMapping("/deleteTkcrsApl.do")
     public String deleteCourseApplication(@RequestParam("courseId") Long courseId,
-                                          @RequestParam(value = "studentId", required = false) String studentId,
+                                          HttpSession session,
                                           RedirectAttributes redirectAttributes) {
-        return registrationService.deleteCourse(studentId, courseId, redirectAttributes);
+        return registrationService.deleteCourse(session, courseId, redirectAttributes);
     }
 
     @PostMapping("/findSubjInfo.do")

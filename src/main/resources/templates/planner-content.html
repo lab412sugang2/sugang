@@ -1,7 +1,6 @@
 <th:block th:fragment="plannerContent" xmlns:th="http://www.thymeleaf.org">
   <script th:inline="javascript" type="text/javascript">
     var flashMessage = /*[[${message}]]*/ "";
-    var studentId = /*[[${studentId}]]*/ "202600000";
 
     function selectSubj() {
       if ($("ul> .ui-tabs-active").index() == 1) {
@@ -92,7 +91,7 @@
       $("#tabs-1 tbody").on("dblclick", "tr.course-row", function () {
         var courseId = $(this).find("input[name='courseId']").val();
         if (!courseId) return;
-        submitPost("saveTkcrsApl.do", {studentId: studentId, courseId: courseId});
+        submitPost("saveTkcrsApl.do", {courseId: courseId});
       });
 
       $("#tkcrsAplTbl tbody").on("click", ".btn_del", function (e) {
@@ -101,7 +100,7 @@
         if (!courseId) return;
 
         $.confirm("삭제하시겠습니까?", function () {
-          submitPost("deleteTkcrsApl.do", {studentId: studentId, courseId: courseId});
+          submitPost("deleteTkcrsApl.do", {courseId: courseId});
         }, selectSubj);
       });
 
@@ -171,7 +170,7 @@
 
                 </th><!-- 학기 --><!-- 학년 -->
                 <th scope="row">학번</th><!-- 학번 -->
-                <td>202600000</td>
+                <td th:text="${studentId}">P12345678</td>
                 <th scope="row">소속</th><!-- 소속 -->
                 <td>SW융합대학 컴퓨터공학과</td>
               </tr>

@@ -2,6 +2,7 @@ package sugang.service;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import jakarta.servlet.http.HttpSession;
 import sugang.exception.CreditLimitExceededException;
 import sugang.exception.TimeConflictException;
 
@@ -9,9 +10,11 @@ import sugang.exception.TimeConflictException;
 public class RegistrationService {
 
     private final PlannerService plannerService;
+    private final SessionStudentService sessionStudentService;
 
-    public RegistrationService(PlannerService plannerService) {
+    public RegistrationService(PlannerService plannerService, SessionStudentService sessionStudentService) {
         this.plannerService = plannerService;
+        this.sessionStudentService = sessionStudentService;
     }
 
     public String mainRedirectView() {
@@ -34,8 +37,8 @@ public class RegistrationService {
         return "redirect:/";
     }
 
-    public String applyCourse(String studentId, Long courseId, RedirectAttributes redirectAttributes) {
-        String resolvedStudentId = resolveStudentId(studentId);
+    public String applyCourse(HttpSession session, Long courseId, RedirectAttributes redirectAttributes) {
+        String resolvedStudentId = sessionStudentService.getOrCreateStudentId(session);
         try {
             plannerService.applyCourse(resolvedStudentId, courseId);
         } catch (CreditLimitExceededException | TimeConflictException | IllegalArgumentException | IllegalStateException e) {
@@ -44,17 +47,10 @@ public class RegistrationService {
         return "redirect:/";
     }
 
-    public String deleteCourse(String studentId, Long courseId, RedirectAttributes redirectAttributes) {
-        String resolvedStudentId = resolveStudentId(studentId);
+    public String deleteCourse(HttpSession session, Long courseId, RedirectAttributes redirectAttributes) {
+        String resolvedStudentId = sessionStudentService.getOrCreateStudentId(session);
         plannerService.deleteCourse(resolvedStudentId, courseId);
         redirectAttributes.addFlashAttribute("message", "신청 과목이 삭제되었습니다.");
         return "redirect:/";
-    }
-
-    private String resolveStudentId(String studentId) {
-        if (studentId == null || studentId.isBlank()) {
-            return PlannerService.DEFAULT_STUDENT_ID;
-        }
-        return studentId;
     }
 }
