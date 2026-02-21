@@ -5,6 +5,11 @@
 
 Made by. 컴퓨터공학과 강대운 · 김준수 · 서준영
 
+## 라이브 데모
+- URL: `https://sugang-5de3.onrender.com`
+- 배포 환경: `Render Free (Docker)`
+- 참고: Free 플랜 특성상 일정 시간 미사용 후 첫 요청에서 기동 지연(sleep/wake-up)이 발생할 수 있습니다.
+
 ## 주요 기술
 - `Spring Boot 3`
 - `Thymeleaf` (SSR)
@@ -107,12 +112,20 @@ docker run --rm -p 8080:8080 \
 - `POST /deleteTkcrsApl.do` : 과목 취소
 - `POST /findSubjInfo.do` : 데모 라우트(`/`로 리다이렉트)
 
-## 배포 가이드 (Render/Railway 공통)
-1. GitHub에 코드 push
-2. 플랫폼에서 GitHub 연결 후 새 서비스 생성
-3. Dockerfile 자동 인식 확인
-4. 환경변수(`DB_URL`, `DB_USERNAME`, `DB_PASSWORD`) 설정
-5. 배포 후 URL 접속
+## Render 배포 기준 설정
+1. GitHub 저장소 연결 후 Web Service 생성
+2. `Dockerfile` 자동 인식 확인
+3. 환경변수 설정
+4. Deploy 후 서비스 URL 확인
+
+필수 환경변수:
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+
+선택 환경변수:
+- `JPA_DDL_AUTO=update`
+- `JPA_SHOW_SQL=false`
 
 ## 안내 및 주의
 - 본 프로젝트는 비공식 데모 사이트입니다.
