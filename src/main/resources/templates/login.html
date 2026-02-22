@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>단국대수강신청연습사이트</title>
+
+  <link rel="shortcut icon" type="image/x-icon" th:href="@{/top_logo.png}" href="top_logo.png" />
+  <link rel="stylesheet" th:href="@{/jquery-ui.min.css}" href="jquery-ui.min.css" />
+  <link rel="stylesheet" th:href="@{/style.min.css}" href="style.min.css" />
+  <script th:src="@{/jquery-1.11.1.min.js}" src="jquery-1.11.1.min.js"></script>
+  <script th:src="@{/placeholders.min.js}" src="placeholders.min.js"></script>
+  <script th:src="@{/jquery-ui.min.js}" src="jquery-ui.min.js"></script>
+  <script th:src="@{/common.js}" src="common.js"></script>
+  <script th:src="@{/style.min.js}" src="style.min.js"></script>
+  <style>
+    .login_frm .login-title-logo {
+      margin: 0 0 12px;
+      width: 320px;
+      text-align: left;
+    }
+    .login_frm .login-title-logo img {
+      width: 100%;
+      height: auto;
+      display: inline-block;
+    }
+    .login_frm h2 {
+      width: 320px;
+      white-space: nowrap;
+    }
+    .login-window-status {
+      width: 320px;
+      margin: 8px 0 14px;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      text-align: center;
+    }
+    .login-window-status.open {
+      color: #ffffff;
+      background: #0f7b2f;
+      border: 1px solid #0a5c22;
+    }
+    .login-window-status.wait {
+      color: #ffffff;
+      background: #a62c2c;
+      border: 1px solid #7f1f1f;
+    }
+  </style>
+
+  <script th:inline="javascript" type="text/javascript">
+    var errorMessage = /*[[${loginError}]]*/ "";
+    if (errorMessage) {
+      alert(errorMessage);
+    }
+
+    $(document).ready(function() {
+      $("#submit").click(function(e) {
+        e.preventDefault();
+        if ($("#id").val() === '') {
+          alert("학번을 입력해 주세요.");
+          return false;
+        } else if ($("#password").val() === '') {
+          alert("비밀번호를 입력해 주세요.");
+          return false;
+        }
+        $("#logonForm").submit();
+      });
+
+      $("#contents input").keydown(function(e) {
+        if (e.keyCode === 13) {
+          e.preventDefault();
+          $("#submit").click();
+        }
+      });
+
+      $("#logonForm #id").focus();
+      $("#logonForm #id").keyup(function() {
+        if ($(this).val().length >= 8) {
+          $("#logonForm #password").focus();
+        }
+      });
+
+      function updateLoginWindowStatus() {
+        var sec = new Date().getSeconds();
+        var mod = sec % 15;
+        var $status = $("#loginWindowStatus");
+
+        if (mod < 5) {
+          var remain = 5 - mod;
+          $status
+            .removeClass("wait")
+            .addClass("open")
+            .text("접속 가능합니다. (" + remain + "초 후 마감)");
+        } else {
+          var nextOpen = 15 - mod;
+          $status
+            .removeClass("open")
+            .addClass("wait")
+            .text("다음 오픈까지 " + nextOpen + "초");
+        }
+      }
+
+      updateLoginWindowStatus();
+      setInterval(updateLoginWindowStatus, 1000);
+    });
+  </script>
+</head>
+<body id="body" class="login">
+  <div class="wrap">
+    <div id="header">
+      <div class="util_box"></div>
+    </div>
+
+    <div id="contents">
+      <div class="cont">
+        <div style="margin: 0 0 14px; padding: 10px 14px; border: 1px solid #f0b300; background: #fff8dc; color: #5f4800; font-size: 13px; line-height: 1.6;">
+          [중요 안내] 본 사이트는 개인 연습용 비공식 데모입니다. 실제 단국대학교 및 공식 학사시스템과 무관하며, 실제 수강신청/학적 처리 기능을 제공하지 않습니다.
+        </div>
+        <div class="login_box" style="height: 440px;">
+          <form id="logonForm" method="post" th:action="@{/login}" action="/login" data-message="alert">
+            <div class="login_frm">
+              <h1 class="login-title-logo">
+                <img th:src="@{/top_logo.png}" src="/top_logo.png" alt="DKU COURSE REGISTRATION SYSTEM" />
+              </h1>
+              <h2>단국대학교 수강신청시스템 로그인.</h2>
+              <p id="loginWindowStatus" class="login-window-status wait">다음 오픈까지 0초</p>
+              <br>
+              <br>
+              <ul>
+                <li><input type="text" id="id" name="studentId" placeholder="학번을 입력해 주세요." /></li>
+                <li><input type="password" id="password" name="password" placeholder="비밀번호를 입력해 주세요." /></li>
+              </ul>
+
+              <a id="submit" href="#"><img th:src="@{/images/login/btn_login.png}" src="/images/login/btn_login.png" alt="로그인" /></a>
+              <button type="submit" style="display:none;">로그인</button>
+            </div>
+          </form>
+
+          <div class="find_frm">
+            <a href="#" onclick="return false;">데모 안내</a>
+            <a href="#" onclick="return false;">비밀번호 찾기(미지원)</a>
+          </div>
+
+          <div class="login_txt">
+            <dl>
+              <dt>▶ 데모 안내</dt>
+              <dd>- 본 화면은 개인 연습용 비공식 데모입니다.</dd>
+              <dd>- 실제 단국대학교 및 공식 학사시스템과 무관합니다.</dd>
+              <dd>- 실제 수강신청/학적 처리 기능을 제공하지 않습니다.</dd>
+              <dd>- 데모 비밀번호: <strong>1234</strong></dd>
+            </dl>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer">
+      <div class="addr_box">
+        <p>Practice Demo Site</p>
+        <p style="margin-top:6px;">Made by. 컴퓨터공학과 강대운 · 김준수 · 서준영</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

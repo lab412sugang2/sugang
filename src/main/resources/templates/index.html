@@ -4,7 +4,7 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
-  <title>단국대학교 수강신청 시스템</title>
+  <title>단국대수강신청연습사이트</title>
 
   <link rel="shortcut icon" type="image/x-icon" th:href="@{/top_logo.png}" href="top_logo.png">
 
@@ -53,7 +53,7 @@
 
 <div id="wrap">
   <div id="header">
-    <div class="top_sec" style="height: 70px; position: relative;">
+    <div class="top_sec" style="height: 92px; position: relative;">
       <a th:href="@{/}" href="/">
         <h1 style="background: none; border: none;">
           <img th:src="@{/top_logo.png}" src="top_logo.png" alt="DKU COURSE REGISTRATION SYSTEM" style="width: 150px; position: absolute; top: 0px; left: 20px;">
@@ -63,11 +63,9 @@
         Made by. 컴퓨터공학과 강대운 · 김준수 · 서준영
       </div>
 
-      <div class="util_box" style="display: none;">
-        <div class="my_name">
-          <p>샘플사용자(00000000)</p>
-        </div>
-        <a href="#" class="btn_logout"><span class="blind">로그아웃</span></a>
+      <div style="position:fixed; right:16px; top:36px; z-index:9999; display:flex; align-items:center; gap:8px; padding:6px 8px; border-radius:6px; background:rgba(24,44,92,0.92);">
+        <div style="color:#ffffff; font-size:12px; white-space:nowrap;" th:text="${displayName + '(' + studentId + ')'}">샘플사용자(00000000)</div>
+        <a href="/logout" style="display:inline-block; padding:4px 10px; border:1px solid #c7d5f5; border-radius:4px; background:#f5f8ff; color:#2f4f96; font-size:12px; font-weight:700; text-decoration:none; white-space:nowrap;">로그아웃</a>
       </div>
     </div>
   </div>

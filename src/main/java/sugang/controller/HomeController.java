@@ -26,11 +26,16 @@ public class HomeController {
 
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
-        String studentId = sessionStudentService.getOrCreateStudentId(session);
-        model.addAttribute("studentId", studentId);
+        if (!sessionStudentService.isAuthenticated(session)) {
+            return "redirect:/login";
+        }
+
+        String internalStudentId = sessionStudentService.getStudentId(session);
+        model.addAttribute("studentId", sessionStudentService.getDisplayStudentId(session));
+        model.addAttribute("displayName", sessionStudentService.getDisplayName(session));
         model.addAttribute("courses", plannerService.getCourses());
-        model.addAttribute("applications", plannerService.getApplications(studentId));
-        model.addAttribute("totalCredit", plannerService.getTotalCredit(studentId));
+        model.addAttribute("applications", plannerService.getApplications(internalStudentId));
+        model.addAttribute("totalCredit", plannerService.getTotalCredit(internalStudentId));
         return homePageService.getPlannerViewName();
     }
 }

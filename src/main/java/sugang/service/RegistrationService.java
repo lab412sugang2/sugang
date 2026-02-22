@@ -25,6 +25,14 @@ public class RegistrationService {
         return "timetable-popup";
     }
 
+    public String timetablePopupView(HttpSession session, RedirectAttributes redirectAttributes) {
+        if (!sessionStudentService.isAuthenticated(session)) {
+            redirectAttributes.addFlashAttribute("loginError", "로그인 후 이용해 주세요.");
+            return "redirect:/login";
+        }
+        return "timetable-popup";
+    }
+
     public String saveCourseRedirectView() {
         return "redirect:/";
     }
@@ -38,7 +46,12 @@ public class RegistrationService {
     }
 
     public String applyCourse(HttpSession session, Long courseId, RedirectAttributes redirectAttributes) {
-        String resolvedStudentId = sessionStudentService.getOrCreateStudentId(session);
+        if (!sessionStudentService.isAuthenticated(session)) {
+            redirectAttributes.addFlashAttribute("loginError", "로그인 후 이용해 주세요.");
+            return "redirect:/login";
+        }
+
+        String resolvedStudentId = sessionStudentService.getStudentId(session);
         try {
             plannerService.applyCourse(resolvedStudentId, courseId);
         } catch (CreditLimitExceededException | TimeConflictException | IllegalArgumentException | IllegalStateException e) {
@@ -48,7 +61,12 @@ public class RegistrationService {
     }
 
     public String deleteCourse(HttpSession session, Long courseId, RedirectAttributes redirectAttributes) {
-        String resolvedStudentId = sessionStudentService.getOrCreateStudentId(session);
+        if (!sessionStudentService.isAuthenticated(session)) {
+            redirectAttributes.addFlashAttribute("loginError", "로그인 후 이용해 주세요.");
+            return "redirect:/login";
+        }
+
+        String resolvedStudentId = sessionStudentService.getStudentId(session);
         plannerService.deleteCourse(resolvedStudentId, courseId);
         redirectAttributes.addFlashAttribute("message", "신청 과목이 삭제되었습니다.");
         return "redirect:/";

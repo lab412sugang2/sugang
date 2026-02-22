@@ -23,8 +23,8 @@ public class SugangMockController {
     }
 
     @GetMapping("/findGsLctTmtbl.do")
-    public String timetablePopup() {
-        return registrationService.timetablePopupView();
+    public String timetablePopup(HttpSession session, RedirectAttributes redirectAttributes) {
+        return registrationService.timetablePopupView(session, redirectAttributes);
     }
 
     @PostMapping("/saveTkcrsApl.do")
