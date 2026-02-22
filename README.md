@@ -1,11 +1,11 @@
 # sugang-local
 
-단국대학교 수강신청 화면을 로컬에서 재현한 Spring Boot 데모 프로젝트입니다.  
+단국대학교 수강신청 화면을 로컬에서 재현한 Spring Boot 연습용 사이트 프로젝트입니다.  
 실제 학사 시스템 연동용이 아닌, UI/흐름 재현과 백엔드 구조 학습 목적의 연습 서비스입니다.
 
 Made by. 컴퓨터공학과 강대운 · 김준수 · 서준영
 
-## 라이브 데모
+## 라이브 연습용 사이트
 - URL: `https://sugang-5de3.onrender.com`
 - 배포 환경: `Render Free (Docker)`
 - 참고: Free 플랜 특성상 일정 시간 미사용 후 첫 요청에서 기동 지연(sleep/wake-up)이 발생할 수 있습니다.
@@ -110,7 +110,7 @@ docker run --rm -p 8080:8080 \
 - `GET /findGsLctTmtbl.do` : 시간표 팝업 화면
 - `POST /saveTkcrsApl.do` : 과목 신청
 - `POST /deleteTkcrsApl.do` : 과목 취소
-- `POST /findSubjInfo.do` : 데모 라우트(`/`로 리다이렉트)
+- `POST /findSubjInfo.do` : 연습용 라우트(`/`로 리다이렉트)
 
 ## Render 배포 기준 설정
 1. GitHub 저장소 연결 후 Web Service 생성
@@ -128,6 +128,6 @@ docker run --rm -p 8080:8080 \
 - `JPA_SHOW_SQL=false`
 
 ## 안내 및 주의
-- 본 프로젝트는 비공식 데모 사이트입니다.
+- 본 프로젝트는 비공식 연습용 사이트입니다.
 - 실제 단국대학교/공식 학사시스템과 무관합니다.
 - 실제 수강신청/학적 처리 기능을 제공하지 않습니다.
