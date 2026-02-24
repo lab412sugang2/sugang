@@ -86,9 +86,6 @@ public class PlannerService {
         if (course.isCanceled()) {
             throw new IllegalStateException("폐강된 과목은 신청할 수 없습니다.");
         }
-        if (course.isFull()) {
-            throw new IllegalStateException("마감된 강좌입니다.");
-        }
         if (courseApplicationRepository.existsByStudentIdAndCourseId(studentId, courseId)) {
             throw new IllegalStateException("이미 신청된 과목입니다.");
         }
@@ -98,17 +95,12 @@ public class PlannerService {
         validateTimeConflict(apps, course);
 
         courseApplicationRepository.save(new CourseApplication(studentId, course));
-        course.syncAppliedCount(courseApplicationRepository.countByCourseId(courseId));
-        courseRepository.save(course);
     }
 
     @Transactional
     public void deleteCourse(String studentId, Long courseId) {
         courseApplicationRepository.findByStudentIdAndCourseId(studentId, courseId).ifPresent(app -> {
             courseApplicationRepository.delete(app);
-            Course course = app.getCourse();
-            course.syncAppliedCount(courseApplicationRepository.countByCourseId(courseId));
-            courseRepository.save(course);
         });
     }
 
