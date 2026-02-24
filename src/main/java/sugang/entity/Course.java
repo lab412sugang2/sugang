@@ -116,4 +116,8 @@ public class Course {
     public void syncAppliedCount(int appliedCount) {
         this.appliedCount = Math.max(appliedCount, 0);
     }
+
+    public void updateLimitCount(int limitCount) {
+        this.limitCount = Math.max(limitCount, 1);
+    }
 }

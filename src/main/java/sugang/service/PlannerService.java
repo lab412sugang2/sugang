@@ -21,6 +21,7 @@ public class PlannerService {
 
     public static final String DEFAULT_STUDENT_ID = "202600000";
     public static final int MAX_APPLICABLE_CREDIT = 19;
+    public static final int PRACTICE_LIMIT_COUNT = 100;
 
     private final CourseRepository courseRepository;
     private final CourseApplicationRepository courseApplicationRepository;
@@ -36,16 +37,16 @@ public class PlannerService {
         boolean seeded = false;
         if (courseRepository.count() == 0) {
             List<Course> samples = new ArrayList<>();
-            samples.add(new Course("329810", 1, "데이터베이스", 3, "강지훈", "금1,2,3(2공105)", 40, 12, false));
-            samples.add(new Course("340112", 1, "운영체제", 3, "김태현", "월4,5/수4,5(1공201)", 45, 28, false));
-            samples.add(new Course("340201", 2, "알고리즘", 3, "이선영", "화2,3/목2,3(2공310)", 35, 17, false));
-            samples.add(new Course("340305", 1, "컴퓨터네트워크", 3, "박지훈", "월1,2/수1,2(1공104)", 50, 31, false));
-            samples.add(new Course("340410", 1, "인공지능", 3, "최민수", "화6,7/목6,7(소프트401)", 40, 40, false));
-            samples.add(new Course("341120", 3, "소프트웨어공학", 3, "한지원", "월10,11/수10,11(공학507)", 45, 22, false));
-            samples.add(new Course("341230", 2, "웹프로그래밍", 3, "윤수빈", "화10,11/목10,11(소프트310)", 40, 19, false));
-            samples.add(new Course("341340", 1, "정보보호", 3, "정우성", "수6,7/금6,7(2공405)", 38, 21, false));
-            samples.add(new Course("341450", 1, "머신러닝", 3, "김하늘", "월13,14/수13,14(소프트502)", 42, 26, false));
-            samples.add(new Course("341560", 1, "클라우드컴퓨팅", 3, "신동혁", "화16,17/목16,17(공학303)", 36, 14, false));
+            samples.add(new Course("329810", 1, "데이터베이스", 3, "강지훈", "금1,2,3(2공105)", PRACTICE_LIMIT_COUNT, 12, false));
+            samples.add(new Course("340112", 1, "운영체제", 3, "김태현", "월4,5/수4,5(1공201)", PRACTICE_LIMIT_COUNT, 28, false));
+            samples.add(new Course("340201", 2, "알고리즘", 3, "이선영", "화2,3/목2,3(2공310)", PRACTICE_LIMIT_COUNT, 17, false));
+            samples.add(new Course("340305", 1, "컴퓨터네트워크", 3, "박지훈", "월1,2/수1,2(1공104)", PRACTICE_LIMIT_COUNT, 31, false));
+            samples.add(new Course("340410", 1, "인공지능", 3, "최민수", "화6,7/목6,7(소프트401)", PRACTICE_LIMIT_COUNT, 40, false));
+            samples.add(new Course("341120", 3, "소프트웨어공학", 3, "한지원", "월10,11/수10,11(공학507)", PRACTICE_LIMIT_COUNT, 22, false));
+            samples.add(new Course("341230", 2, "웹프로그래밍", 3, "윤수빈", "화10,11/목10,11(소프트310)", PRACTICE_LIMIT_COUNT, 19, false));
+            samples.add(new Course("341340", 1, "정보보호", 3, "정우성", "수6,7/금6,7(2공405)", PRACTICE_LIMIT_COUNT, 21, false));
+            samples.add(new Course("341450", 1, "머신러닝", 3, "김하늘", "월13,14/수13,14(소프트502)", PRACTICE_LIMIT_COUNT, 26, false));
+            samples.add(new Course("341560", 1, "클라우드컴퓨팅", 3, "신동혁", "화16,17/목16,17(공학303)", PRACTICE_LIMIT_COUNT, 14, false));
             samples.add(new Course("349901", 1, "캡스톤디자인실습A", 3, "김연우", "월15,16(공학201)", 1, 0, false));
             samples.add(new Course("349902", 1, "캡스톤디자인실습B", 3, "박민지", "수15,16(공학202)", 1, 0, false));
 
@@ -60,6 +61,7 @@ public class PlannerService {
                     courseApplicationRepository.save(new CourseApplication("seed-closed-2", course)));
         }
 
+        ensurePracticeLimitCounts();
         syncAllAppliedCounts();
     }
 
@@ -86,6 +88,9 @@ public class PlannerService {
         if (course.isCanceled()) {
             throw new IllegalStateException("폐강된 과목은 신청할 수 없습니다.");
         }
+        if (course.isFull()) {
+            throw new IllegalStateException("마감된 강좌입니다.");
+        }
         if (courseApplicationRepository.existsByStudentIdAndCourseId(studentId, courseId)) {
             throw new IllegalStateException("이미 신청된 과목입니다.");
         }
@@ -95,12 +100,17 @@ public class PlannerService {
         validateTimeConflict(apps, course);
 
         courseApplicationRepository.save(new CourseApplication(studentId, course));
+        course.syncAppliedCount(courseApplicationRepository.countByCourseId(courseId));
+        courseRepository.save(course);
     }
 
     @Transactional
     public void deleteCourse(String studentId, Long courseId) {
         courseApplicationRepository.findByStudentIdAndCourseId(studentId, courseId).ifPresent(app -> {
             courseApplicationRepository.delete(app);
+            Course course = app.getCourse();
+            course.syncAppliedCount(courseApplicationRepository.countByCourseId(courseId));
+            courseRepository.save(course);
         });
     }
 
@@ -185,5 +195,26 @@ public class PlannerService {
                 courseRepository.save(course);
             }
         }
+    }
+
+    private void ensurePracticeLimitCounts() {
+        List<Course> courses = courseRepository.findAll();
+        for (Course course : courses) {
+            if (isCapstonePracticeCourse(course)) {
+                if (course.getLimitCount() != 1) {
+                    course.updateLimitCount(1);
+                    courseRepository.save(course);
+                }
+                continue;
+            }
+            if (course.getLimitCount() < PRACTICE_LIMIT_COUNT) {
+                course.updateLimitCount(PRACTICE_LIMIT_COUNT);
+                courseRepository.save(course);
+            }
+        }
+    }
+
+    private boolean isCapstonePracticeCourse(Course course) {
+        return "349901".equals(course.getCode()) || "349902".equals(course.getCode());
     }
 }

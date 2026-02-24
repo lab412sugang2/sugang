@@ -83,7 +83,7 @@ class PlannerServiceValidationTest {
         assertTrue(courseApplicationRepository.existsByStudentIdAndCourseId(studentId, target.getId()));
         Optional<Course> reloaded = courseRepository.findById(target.getId());
         assertTrue(reloaded.isPresent());
-        assertEquals(0, reloaded.get().getAppliedCount());
+        assertEquals(1, reloaded.get().getAppliedCount());
     }
 
     @Test
@@ -101,7 +101,7 @@ class PlannerServiceValidationTest {
         Course firstAfterDelete = courseRepository.findById(first.getId()).orElseThrow();
         Course secondAfterDelete = courseRepository.findById(second.getId()).orElseThrow();
         assertEquals(0, firstAfterDelete.getAppliedCount());
-        assertEquals(0, secondAfterDelete.getAppliedCount());
+        assertEquals(1, secondAfterDelete.getAppliedCount());
         assertFalseApplyExists(studentId, first.getId());
         assertTrue(courseApplicationRepository.existsByStudentIdAndCourseId(studentId, second.getId()));
     }
