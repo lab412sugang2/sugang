@@ -2,6 +2,7 @@ package sugang.controller;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -26,7 +27,10 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public String loginPage(HttpSession session) {
+    public String loginPage(HttpSession session, Model model) {
+        model.addAttribute("serverEpochMillis", System.currentTimeMillis());
+        model.addAttribute("windowSeconds", WINDOW_SECONDS);
+        model.addAttribute("allowSeconds", ALLOW_SECONDS);
         return "login";
     }
 
