@@ -22,6 +22,7 @@ public class LoginController {
     private static final String DEMO_PASSWORD = "1234";
     private static final int WINDOW_SECONDS = 15;
     private static final int ALLOW_SECONDS = 5;
+    private static final int ALLOW_GRACE_SECONDS = 3;
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final SessionStudentService sessionStudentService;
@@ -35,6 +36,7 @@ public class LoginController {
         model.addAttribute("serverEpochMillis", System.currentTimeMillis());
         model.addAttribute("windowSeconds", WINDOW_SECONDS);
         model.addAttribute("allowSeconds", ALLOW_SECONDS);
+        model.addAttribute("allowGraceSeconds", ALLOW_GRACE_SECONDS);
         return "login";
     }
 
@@ -53,7 +55,7 @@ public class LoginController {
 
         int second = LocalDateTime.now(KST).getSecond();
         int mod = second % WINDOW_SECONDS;
-        boolean open = mod < ALLOW_SECONDS;
+        boolean open = mod < (ALLOW_SECONDS + ALLOW_GRACE_SECONDS);
 
         if (!open) {
             log.info("LOGIN_WINDOW_CHECK studentId={} sec={} mod={} open={} result=denied",
