@@ -61,6 +61,8 @@
     var serverEpochMillis = /*[[${serverEpochMillis}]]*/ 0;
     var windowSeconds = /*[[${windowSeconds}]]*/ 15;
     var allowSeconds = /*[[${allowSeconds}]]*/ 5;
+    var allowGraceSeconds = /*[[${allowGraceSeconds}]]*/ 3;
+    var effectiveAllowSeconds = allowSeconds + allowGraceSeconds;
     var serverClientOffsetMs = serverEpochMillis - Date.now();
     if (errorMessage) {
       alert(errorMessage);
@@ -103,15 +105,15 @@
       }
 
       function isLoginWindowOpen() {
-        return (getServerAlignedSecond() % windowSeconds) < allowSeconds;
+        return (getServerAlignedSecond() % windowSeconds) < effectiveAllowSeconds;
       }
 
       function updateLoginWindowStatus() {
         var mod = getServerAlignedSecond() % windowSeconds;
         var $status = $("#loginWindowStatus");
 
-        if (mod < allowSeconds) {
-          var remain = allowSeconds - mod;
+        if (mod < effectiveAllowSeconds) {
+          var remain = effectiveAllowSeconds - mod;
           $status
             .removeClass("wait")
             .addClass("open")
