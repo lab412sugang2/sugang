@@ -1,7 +1,10 @@
 package sugang.controller;
 
 import jakarta.servlet.http.HttpSession;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +16,8 @@ import java.time.ZoneId;
 
 @Controller
 public class LoginController {
+
+    private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
     private static final String DEMO_PASSWORD = "1234";
     private static final int WINDOW_SECONDS = 15;
@@ -26,7 +31,10 @@ public class LoginController {
     }
 
     @GetMapping("/login")
-    public String loginPage(HttpSession session) {
+    public String loginPage(HttpSession session, Model model) {
+        model.addAttribute("serverEpochMillis", System.currentTimeMillis());
+        model.addAttribute("windowSeconds", WINDOW_SECONDS);
+        model.addAttribute("allowSeconds", ALLOW_SECONDS);
         return "login";
     }
 
@@ -43,16 +51,26 @@ public class LoginController {
             return "redirect:/login";
         }
 
-        if (!isLoginWindowOpen()) {
+        int second = LocalDateTime.now(KST).getSecond();
+        int mod = second % WINDOW_SECONDS;
+        boolean open = mod < ALLOW_SECONDS;
+
+        if (!open) {
+            log.info("LOGIN_WINDOW_CHECK studentId={} sec={} mod={} open={} result=denied",
+                    normalizedStudentId, second, mod, open);
             redirectAttributes.addFlashAttribute("loginError", "수강신청 기간이 아닙니다. 수강신청 기간을 확인하십시요.");
             return "redirect:/login";
         }
 
         if (!DEMO_PASSWORD.equals(normalizedPassword)) {
+            log.info("LOGIN_WINDOW_CHECK studentId={} sec={} mod={} open={} result=denied_password",
+                    normalizedStudentId, second, mod, open);
             redirectAttributes.addFlashAttribute("loginError", "비밀번호가 올바르지 않습니다.");
             return "redirect:/login";
         }
 
+        log.info("LOGIN_WINDOW_CHECK studentId={} sec={} mod={} open={} result=allowed",
+                normalizedStudentId, second, mod, open);
         sessionStudentService.login(session, normalizedStudentId);
         return "redirect:/";
     }

@@ -58,6 +58,10 @@
 
   <script th:inline="javascript" type="text/javascript">
     var errorMessage = /*[[${loginError}]]*/ "";
+    var serverEpochMillis = /*[[${serverEpochMillis}]]*/ 0;
+    var windowSeconds = /*[[${windowSeconds}]]*/ 15;
+    var allowSeconds = /*[[${allowSeconds}]]*/ 5;
+    var serverClientOffsetMs = serverEpochMillis - Date.now();
     if (errorMessage) {
       alert(errorMessage);
     }
@@ -70,6 +74,10 @@
           return false;
         } else if ($("#password").val() === '') {
           alert("비밀번호를 입력해 주세요.");
+          return false;
+        }
+        if (!isLoginWindowOpen()) {
+          alert("수강신청 기간이 아닙니다. 수강신청 기간을 확인하십시요.");
           return false;
         }
         $("#logonForm").submit();
@@ -89,19 +97,27 @@
         }
       });
 
+      function getServerAlignedSecond() {
+        var nowAligned = new Date(Date.now() + serverClientOffsetMs);
+        return nowAligned.getSeconds();
+      }
+
+      function isLoginWindowOpen() {
+        return (getServerAlignedSecond() % windowSeconds) < allowSeconds;
+      }
+
       function updateLoginWindowStatus() {
-        var sec = new Date().getSeconds();
-        var mod = sec % 15;
+        var mod = getServerAlignedSecond() % windowSeconds;
         var $status = $("#loginWindowStatus");
 
-        if (mod < 5) {
-          var remain = 5 - mod;
+        if (mod < allowSeconds) {
+          var remain = allowSeconds - mod;
           $status
             .removeClass("wait")
             .addClass("open")
             .text("접속 가능합니다. (" + remain + "초 후 마감)");
         } else {
-          var nextOpen = 15 - mod;
+          var nextOpen = windowSeconds - mod;
           $status
             .removeClass("open")
             .addClass("wait")
