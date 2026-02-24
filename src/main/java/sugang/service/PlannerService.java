@@ -21,7 +21,7 @@ public class PlannerService {
 
     public static final String DEFAULT_STUDENT_ID = "202600000";
     public static final int MAX_APPLICABLE_CREDIT = 19;
-    public static final int PRACTICE_LIMIT_COUNT = 100;
+    public static final int PRACTICE_LIMIT_COUNT = 10000;
 
     private final CourseRepository courseRepository;
     private final CourseApplicationRepository courseApplicationRepository;
