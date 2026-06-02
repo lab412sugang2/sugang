@@ -104,6 +104,59 @@ docker run --rm -p 8080:8080 \
 - `SugangRoutingTest`
 - `PlannerServiceValidationTest`
 
+## 모니터링(Micrometer)
+- Actuator/Micrometer가 활성화되어 HTTP 요청 메트릭을 수집합니다.
+- 기본 엔드포인트:
+  - `GET /actuator/health`
+  - `GET /actuator/metrics`
+  - `GET /actuator/metrics/http.server.requests`
+  - `GET /actuator/prometheus`
+- `http.server.requests`에 p95/p99(분위수)와 히스토그램이 설정되어 있습니다.
+
+### Prometheus + Grafana 실행
+모니터링 스택 파일 위치:
+- `monitoring/docker-compose.monitoring.yml`
+- `monitoring/prometheus/prometheus.yml`
+- `monitoring/grafana/dashboards/sugang-performance.json`
+
+기본 scrape 대상:
+- Render: `https://sugang-5de3.onrender.com/actuator/prometheus`
+- 로컬 앱을 볼 때는 `monitoring/prometheus/prometheus.yml`을 `http://host.docker.internal:8080` 기준으로 다시 바꿉니다.
+
+실행:
+```bash
+cd monitoring
+docker compose -f docker-compose.monitoring.yml up -d
+```
+
+접속:
+- Prometheus: `http://localhost:9090`
+- Grafana: `http://localhost:3000` (기본 계정 `admin` / `admin`)
+
+### k6 부하 테스트 실행
+시나리오 파일:
+- `k6/scenarios/concurrency-ramp.js`
+- `k6/scenarios/first-pass-render.js` (`100 -> 300 -> 500 -> 1000` 1차 실험용)
+
+실행 예시:
+```bash
+k6 run -e BASE_URL=http://localhost:8080 k6/scenarios/concurrency-ramp.js
+```
+
+Render 1차 실험:
+```bash
+k6 run k6/scenarios/first-pass-render.js
+```
+
+1차 실험에서 Grafana에서 먼저 볼 패널:
+- `HTTP Latency (p95/p99)`
+- `Hikari Active/Max %`
+- `Hikari Pending / Timeout`
+- `CPU Usage`
+- `Heap Usage %`
+
+각 단계(`100`, `300`, `500`, `1000`) 유지 구간에서 위 5개 패널을 캡처하면 됩니다.
+
 ## 라우팅
 - `GET /` : 메인 수강신청 화면
 - `GET /main.do` : `/`로 리다이렉트
