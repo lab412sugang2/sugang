@@ -27,7 +27,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
         if (!sessionStudentService.isAuthenticated(session)) {
-            return "redirect:/login";
+            return "index";
         }
 
         String internalStudentId = sessionStudentService.getStudentId(session);
