@@ -27,7 +27,7 @@ public class HomeController {
     @GetMapping("/")
     public String home(Model model, HttpSession session) {
         if (!sessionStudentService.isAuthenticated(session)) {
-            return "index";
+            return "redirect:/login";
         }
 
         String internalStudentId = sessionStudentService.getStudentId(session);
@@ -37,5 +37,10 @@ public class HomeController {
         model.addAttribute("applications", plannerService.getApplications(internalStudentId));
         model.addAttribute("totalCredit", plannerService.getTotalCredit(internalStudentId));
         return homePageService.getPlannerViewName();
+    }
+
+    @GetMapping("/about")
+    public String about() {
+        return "about";
     }
 }

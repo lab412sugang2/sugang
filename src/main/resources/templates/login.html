@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>단국대 수강신청 연습 로그인 | 수강신청 모의 테스트</title>
   <meta name="description" content="단국대 수강신청 연습 사이트 로그인 페이지입니다. 수강신청 화면 흐름과 신청 연습, 시간표 조회 연습을 체험할 수 있습니다." />
-  <meta name="robots" content="index,follow" />
+  <meta name="robots" content="noindex,follow" />
   <link rel="canonical" href="https://sugang-5de3.onrender.com/login" />
   <meta property="og:title" content="단국대 수강신청 연습 로그인" />
   <meta property="og:description" content="단국대 수강신청 연습 사이트 로그인 페이지입니다." />
@@ -182,7 +182,7 @@
           </form>
 
           <div class="find_frm">
-            <a href="#" onclick="return false;">연습용 사이트 안내</a>
+            <a th:href="@{/about}" href="/about">연습용 사이트 안내</a>
             <a href="#" onclick="return false;">비밀번호 찾기(미지원)</a>
           </div>
 
