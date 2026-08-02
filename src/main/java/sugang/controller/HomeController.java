@@ -1,8 +1,10 @@
 package sugang.controller;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.servlet.view.RedirectView;
 import sugang.service.HomePageService;
 import sugang.service.PlannerService;
 import sugang.service.SessionStudentService;
@@ -40,7 +42,9 @@ public class HomeController {
     }
 
     @GetMapping("/about")
-    public String about() {
-        return "redirect:/login";
+    public RedirectView about() {
+        RedirectView redirectView = new RedirectView("/login");
+        redirectView.setStatusCode(HttpStatus.MOVED_PERMANENTLY);
+        return redirectView;
     }
 }
