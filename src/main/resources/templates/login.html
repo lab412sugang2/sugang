@@ -46,7 +46,7 @@
   <style>
     .login_frm .login-title-logo {
       margin: 0 0 12px;
-      width: 320px;
+      width: 342px;
       text-align: left;
     }
     .login_frm .login-title-logo img {
@@ -55,12 +55,15 @@
       display: inline-block;
     }
     .login_frm h2 {
-      width: 320px;
+      width: 342px;
+      margin: 14px 0 16px;
+      text-align: center;
       white-space: nowrap;
     }
     .login-window-status {
-      width: 320px;
-      margin: 8px 0 14px;
+      box-sizing: border-box;
+      width: 342px;
+      margin: 8px 0 0;
       padding: 8px 10px;
       border-radius: 6px;
       font-size: 14px;
@@ -76,6 +79,47 @@
       color: #ffffff;
       background: #a62c2c;
       border: 1px solid #7f1f1f;
+    }
+    .login-input-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 342px;
+      margin-top: 50px;
+    }
+    .login_frm .login-input-row ul {
+      float: none;
+      width: 234px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .login_frm .login-input-row li {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .login_frm .login-input-row li + li {
+      margin-top: 8px;
+    }
+    .login_frm .login-input-row ul li input,
+    .login_frm .login-input-row ul li + li input {
+      box-sizing: border-box;
+      width: 234px;
+      height: 27px;
+      margin: 0;
+      line-height: 23px;
+      border: 2px solid #ffffff;
+    }
+    .login_frm .login-input-row #submit {
+      float: none;
+      flex: 0 0 98px;
+      width: 98px;
+      height: 69px;
+      margin: 0;
+    }
+    .login_frm .login-input-row #submit img {
+      display: block;
     }
   </style>
 
@@ -184,14 +228,14 @@
               </h1>
               <h2>단국대학교 수강신청시스템 로그인.</h2>
               <p id="loginWindowStatus" class="login-window-status wait">다음 오픈까지 0초</p>
-              <br>
-              <br>
-              <ul>
-                <li><input type="text" id="id" name="studentId" placeholder="학번을 입력해 주세요." /></li>
-                <li><input type="password" id="password" name="password" placeholder="비밀번호를 입력해 주세요." /></li>
-              </ul>
+              <div class="login-input-row">
+                <ul>
+                  <li><input type="text" id="id" name="studentId" placeholder="학번을 입력해 주세요." /></li>
+                  <li><input type="password" id="password" name="password" placeholder="비밀번호를 입력해 주세요." /></li>
+                </ul>
 
-              <a id="submit" href="#"><img th:src="@{/images/login/btn_login.png}" src="/images/login/btn_login.png" alt="로그인" /></a>
+                <a id="submit" href="#"><img th:src="@{/images/login/btn_login.png}" src="/images/login/btn_login.png" alt="로그인" /></a>
+              </div>
               <button type="submit" style="display:none;">로그인</button>
             </div>
           </form>
