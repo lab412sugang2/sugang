@@ -1,6 +1,9 @@
 package sugang.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import sugang.entity.CourseApplication;
 
 import java.util.List;
@@ -15,4 +18,8 @@ public interface CourseApplicationRepository extends JpaRepository<CourseApplica
     Optional<CourseApplication> findByStudentIdAndCourseId(String studentId, Long courseId);
 
     int countByCourseId(Long courseId);
+
+    @Modifying(flushAutomatically = true)
+    @Query("delete from CourseApplication ca where ca.course.id = :courseId")
+    int deleteByCourseId(@Param("courseId") Long courseId);
 }

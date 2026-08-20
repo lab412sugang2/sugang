@@ -1,6 +1,7 @@
 package sugang.controller;
 
 import jakarta.servlet.http.HttpSession;
+import org.springframework.beans.factory.annotation.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -26,17 +27,20 @@ public class LoginController {
     private static final ZoneId KST = ZoneId.of("Asia/Seoul");
 
     private final SessionStudentService sessionStudentService;
+    private final boolean loginWindowEnforced;
 
-    public LoginController(SessionStudentService sessionStudentService) {
+    public LoginController(SessionStudentService sessionStudentService,
+                           @Value("${app.login.window-enforced:true}") boolean loginWindowEnforced) {
         this.sessionStudentService = sessionStudentService;
+        this.loginWindowEnforced = loginWindowEnforced;
     }
 
     @GetMapping("/login")
     public String loginPage(HttpSession session, Model model) {
         model.addAttribute("serverEpochMillis", System.currentTimeMillis());
-        model.addAttribute("windowSeconds", WINDOW_SECONDS);
-        model.addAttribute("allowSeconds", ALLOW_SECONDS);
-        model.addAttribute("allowGraceSeconds", ALLOW_GRACE_SECONDS);
+        model.addAttribute("windowSeconds", loginWindowEnforced ? WINDOW_SECONDS : 1);
+        model.addAttribute("allowSeconds", loginWindowEnforced ? ALLOW_SECONDS : 1);
+        model.addAttribute("allowGraceSeconds", loginWindowEnforced ? ALLOW_GRACE_SECONDS : 0);
         return "login";
     }
 
@@ -55,9 +59,9 @@ public class LoginController {
 
         int second = LocalDateTime.now(KST).getSecond();
         int mod = second % WINDOW_SECONDS;
-        boolean open = mod < (ALLOW_SECONDS + ALLOW_GRACE_SECONDS);
+        boolean open = !loginWindowEnforced || mod < (ALLOW_SECONDS + ALLOW_GRACE_SECONDS);
 
-        if (!open) {
+        if (loginWindowEnforced && !open) {
             log.info("LOGIN_WINDOW_CHECK studentId={} sec={} mod={} open={} result=denied",
                     normalizedStudentId, second, mod, open);
             redirectAttributes.addFlashAttribute("loginError", "수강신청 기간이 아닙니다. 수강신청 기간을 확인하십시요.");
@@ -81,10 +85,5 @@ public class LoginController {
     public String logout(HttpSession session) {
         sessionStudentService.logout(session);
         return "redirect:/login";
-    }
-
-    private boolean isLoginWindowOpen() {
-        int second = LocalDateTime.now(KST).getSecond();
-        return (second % WINDOW_SECONDS) < ALLOW_SECONDS;
     }
 }

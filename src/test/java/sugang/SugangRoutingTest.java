@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
-@SpringBootTest
+@SpringBootTest(properties = "app.login.window-enforced=false")
 @AutoConfigureMockMvc
 class SugangRoutingTest {
 
@@ -83,7 +83,7 @@ class SugangRoutingTest {
 
         mockMvc.perform(post("/login")
                         .param("studentId", "20260001")
-                        .param("password", "dku1234!"))
+                        .param("password", "1234"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/"));
     }

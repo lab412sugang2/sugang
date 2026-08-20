@@ -46,3 +46,4 @@ Thumbs.db
 # Local runtime data and source snapshots
 /db_data/
 /sugang/
+/tmp/
