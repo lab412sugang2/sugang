@@ -165,10 +165,10 @@ for scenario in ${SCENARIOS}; do
     set -e
 
     if [[ -f "${json_file}" ]]; then
-      k6_p95="$(jq -r '.metrics.http_req_duration["p(95)"] // .metrics.http_req_duration.values["p(95)"] // "NaN"' "${json_file}")"
-      k6_p99="$(jq -r '.metrics.http_req_duration["p(99)"] // .metrics.http_req_duration.values["p(99)"] // "NaN"' "${json_file}")"
-      fail_rate="$(jq -r '.metrics.http_req_failed.value // .metrics.http_req_failed.values.rate // "NaN"' "${json_file}")"
-      req_rate="$(jq -r '.metrics.http_reqs.rate // .metrics.http_reqs.values.rate // "NaN"' "${json_file}")"
+      k6_p95="$(jq -r '.metrics.scenario_request_duration["p(95)"] // .metrics.scenario_request_duration.values["p(95)"] // "NaN"' "${json_file}")"
+      k6_p99="$(jq -r '.metrics.scenario_request_duration["p(99)"] // .metrics.scenario_request_duration.values["p(99)"] // "NaN"' "${json_file}")"
+      fail_rate="$(jq -r '.metrics.scenario_request_failed.value // .metrics.scenario_request_failed.values.rate // "NaN"' "${json_file}")"
+      req_rate="$(jq -r '.metrics.scenario_requests.rate // .metrics.scenario_requests.values.rate // "NaN"' "${json_file}")"
       rejected_rate="$(jq -r '.metrics.application_rejected.value // .metrics.application_rejected.values.rate // "-"' "${json_file}")"
     else
       k6_p95="NaN"

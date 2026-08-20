@@ -1,7 +1,7 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import exec from 'k6/execution';
-import { Rate } from 'k6/metrics';
+import { Counter, Rate, Trend } from 'k6/metrics';
 
 const BASE_URL = __ENV.BASE_URL || 'https://sugang-5de3.onrender.com';
 const PERFORMANCE_TEST_TOKEN = __ENV.PERFORMANCE_TEST_TOKEN || '';
@@ -13,6 +13,9 @@ const CAPACITY = Number(__ENV.CAPACITY || '100000');
 const RUN_ID = __ENV.RUN_ID || String(Date.now());
 const RUN_TOKEN = compactRunToken(RUN_ID);
 const applicationRejected = new Rate('application_rejected');
+const scenarioRequestDuration = new Trend('scenario_request_duration', true);
+const scenarioRequestFailed = new Rate('scenario_request_failed');
+const scenarioRequests = new Counter('scenario_requests');
 
 export const options = {
   summaryTrendStats: ['avg', 'min', 'med', 'max', 'p(90)', 'p(95)', 'p(99)'],
@@ -28,8 +31,8 @@ export const options = {
     },
   },
   thresholds: {
-    http_req_failed: ['rate<0.01'],
-    http_req_duration: ['p(95)<2000', 'p(99)<4000'],
+    scenario_request_failed: ['rate<0.01'],
+    scenario_request_duration: ['p(95)<2000', 'p(99)<4000'],
     application_rejected: ['rate==0'],
   },
 };
@@ -91,8 +94,12 @@ export default function (data) {
     JSON.stringify({ studentId: studentId(), courseId }),
     jsonParams('perf_distributed_apply'),
   );
+  const httpSucceeded = response.status === 200;
   const accepted = response.status === 200 && response.json('result') === 'success';
 
+  scenarioRequestDuration.add(response.timings.duration);
+  scenarioRequestFailed.add(!httpSucceeded);
+  scenarioRequests.add(1);
   applicationRejected.add(!accepted);
   check(response, { 'distributed application succeeds': () => accepted });
   sleep(1);

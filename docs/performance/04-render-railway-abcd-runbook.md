@@ -107,6 +107,22 @@ bash ./scripts/perf/run_bottleneck_isolation.sh
 - C/D의 `Count mismatch`가 `0`이다.
 - 실행 후 Railway에서 `PERF-` 강의가 남지 않는다.
 
+### 1 VU 스모크 결과
+
+- 실행일: 2026-08-20
+- Run ID: `20260820-213530`
+- 조건: Ramp 5초, Hold 10초
+- p95·p99·실패율·RPS는 fixture setup·cleanup을 제외한 대상 요청만 집계했다.
+
+| 시나리오 | p95 | p99 | 실패율 | 거부율 | DB applied/actual | 불일치 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| A: ping | 207.26ms | 217.49ms | 0% | - | - | - |
+| B: 단일 강의 조회 | 982.17ms | 1016.26ms | 0% | - | - | - |
+| C: 분산 신청 | 1130.08ms | 1159.15ms | 0% | 0% | 5/5 | 0 |
+| D: 동일 강의 신청 | 981.59ms | 983.27ms | 0% | 0% | 6/6 | 0 |
+
+모든 시나리오의 k6 exit code는 0이었고, C/D 종료 후 `PERF-` fixture가 남지 않은 것을 확인했다. 이 결과는 운영 MySQL 연결과 측정·정리 절차의 정상 동작을 확인한 스모크 결과이며, 병목 판단에는 10/50/100 VU 기준선 결과를 사용한다.
+
 ## 5. 개선 전 기준 성능 측정
 
 스모크 테스트가 통과한 뒤 다음 명령을 실행한다.
@@ -131,6 +147,7 @@ tmp/perf-bottleneck-isolation/{run-id}/*.log
 
 ## 수집 항목
 
+- p95, p99, 실패율, 처리량은 fixture setup·cleanup을 제외한 시나리오 대상 요청만 집계
 - k6 p95, p99, 실패율, 요청 처리량
 - 애플리케이션 거부율
 - Process CPU, System CPU
