@@ -1,6 +1,7 @@
 package sugang.service;
 
 import jakarta.annotation.PostConstruct;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -88,9 +89,6 @@ public class PlannerService {
         if (course.isCanceled()) {
             throw new IllegalStateException("폐강된 과목은 신청할 수 없습니다.");
         }
-        if (course.isFull()) {
-            throw new IllegalStateException("마감된 강좌입니다.");
-        }
         if (courseApplicationRepository.existsByStudentIdAndCourseId(studentId, courseId)) {
             throw new IllegalStateException("이미 신청된 과목입니다.");
         }
@@ -99,9 +97,16 @@ public class PlannerService {
         validateCreditLimit(apps, course);
         validateTimeConflict(apps, course);
 
-        courseApplicationRepository.save(new CourseApplication(studentId, course));
-        course.syncAppliedCount(courseApplicationRepository.countByCourseId(courseId));
-        courseRepository.save(course);
+        int updatedRows = courseRepository.increaseAppliedCountIfNotFull(courseId);
+        if (updatedRows == 0) {
+            throw new IllegalStateException("마감된 강좌입니다.");
+        }
+
+        try {
+            courseApplicationRepository.saveAndFlush(new CourseApplication(studentId, course));
+        } catch (DataIntegrityViolationException e) {
+            throw new IllegalStateException("이미 신청된 과목입니다.", e);
+        }
     }
 
     @Transactional
