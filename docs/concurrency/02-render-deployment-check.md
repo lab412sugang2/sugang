@@ -101,6 +101,20 @@ courses = 12
 course_applications = 2
 ```
 
+같은 SQL 화면에서 DB 엔진 버전과 기본 트랜잭션 격리 수준을 조회했다.
+
+```sql
+SELECT VERSION() AS mysql_version,
+       @@transaction_isolation AS isolation_level;
+```
+
+```text
+mysql_version = 9.4.0
+isolation_level = REPEATABLE-READ
+```
+
+따라서 이후 운영 환경 실험은 `MySQL 9.4.0 / REPEATABLE-READ`를 기준으로 기록한다. 로컬 Docker MySQL 8.0 동시성 실험과는 DB 버전이 다르므로 결과를 분리해 해석한다.
+
 ## 운영 MySQL 스모크 테스트
 
 다른 사용자 데이터와 충돌하지 않는 고유 테스트 학번으로 다음 순서의 스모크 테스트를 실행했다.
