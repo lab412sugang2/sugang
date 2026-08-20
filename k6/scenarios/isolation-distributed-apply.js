@@ -49,13 +49,14 @@ function studentId() {
   return `PD-${RUN_TOKEN}-${exec.vu.idInTest.toString(36)}-${exec.scenario.iterationInTest.toString(36)}`;
 }
 
-function jsonParams(endpoint) {
+function jsonParams(endpoint, timeout = '15s') {
   return {
     headers: {
       'Content-Type': 'application/json',
       'X-Performance-Test-Token': PERFORMANCE_TEST_TOKEN,
     },
     tags: { endpoint },
+    timeout,
   };
 }
 
@@ -92,12 +93,14 @@ export default function (data) {
   const response = http.post(
     `${BASE_URL}/performance/apply`,
     JSON.stringify({ studentId: studentId(), courseId }),
-    jsonParams('perf_distributed_apply'),
+    jsonParams('perf_distributed_apply', '10s'),
   );
   const httpSucceeded = response.status === 200;
   const accepted = response.status === 200 && response.json('result') === 'success';
 
-  scenarioRequestDuration.add(response.timings.duration);
+  if (httpSucceeded) {
+    scenarioRequestDuration.add(response.timings.duration);
+  }
   scenarioRequestFailed.add(!httpSucceeded);
   scenarioRequests.add(1);
   applicationRejected.add(!accepted);

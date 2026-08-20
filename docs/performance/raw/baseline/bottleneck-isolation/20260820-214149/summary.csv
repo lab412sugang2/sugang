@@ -1,0 +1,7 @@
+scenario,vus,k6_exit,p95_ms,p99_ms,fail_rate_pct,req_per_sec,rejected_pct,process_cpu_max_pct,system_cpu_max_pct,heap_max_pct,tomcat_busy_pct,gc_pause_seconds,hikari_active_pct,hikari_pending_max,hikari_timeouts,db_applied,db_actual,count_mismatch
+ping,10,0,222.46,258.70,0.00,7.76,-,13.00,13.10,45.14,1.00,0.01,0.00,0.00,0.00,-,-,-
+ping,50,0,217.45,251.77,0.00,39.16,-,40.45,40.97,45.31,0.50,0.01,0.00,0.00,0.00,-,-,-
+ping,100,0,220.48,258.82,0.00,78.13,-,13.88,13.70,42.13,0.50,0.01,0.00,0.00,0.00,-,-,-
+course-read,10,0,870.03,927.89,0.00,5.07,-,9.13,8.67,47.24,4.50,0.00,80.00,0.00,0.00,-,-,-
+course-read,50,99,1893.44,772429.15,1.61,3.25,-,14.80,14.72,48.49,15.50,0.02,100.00,20.00,0.00,-,-,-
+course-read,100,141,NaN,NaN,NaN,NaN,-,31.60,31.46,56.61,40.50,0.04,100.00,70.00,0.00,-,-,-

@@ -35,6 +35,11 @@ C와 D는 같은 `PlannerService.applyCourse()`를 호출한다. 따라서 실�
 - 테스트 전 기존 성능 데이터를 지우고 테스트 후 다시 자동 삭제한다.
 - 테스트 학번은 DB 컬럼 제한인 30자를 넘지 않게 생성한다.
 - C/D의 최종 `applied_count`와 실제 신청 행 수를 비교해 요약에 저장한다.
+- 대상 요청은 10초 안에 응답하지 않으면 실패 처리한다.
+- p95·p99는 성공 응답만 계산하고, 실패 요청은 별도 실패율로 기록한다.
+- 임계치를 넘은 단계가 나오면 이후 고부하 단계를 자동 중단한다.
+- 토큰 끝의 줄바꿈은 자동 제거하고, C/D 시작 전에 Render 토큰과 일치하는지 확인한다.
+- 토큰은 k6 또는 curl의 프로세스 인자에 노출하지 않는다.
 - 최초 기본 부하는 `10/50/100 VU`다. 포화 지점을 확인하기 전에는 500/1000 VU를 실행하지 않는다.
 
 ## 1. Render 환경 변수
@@ -156,6 +161,8 @@ tmp/perf-bottleneck-isolation/{run-id}/*.log
 - GC pause 시간
 - Hikari active/max 비율
 - Hikari pending
+- Hikari connection 획득 평균·최대 시간
+- Hikari connection 사용 평균·최대 시간
 - Hikari connection timeout
 - C/D의 최종 `courses.applied_count`
 - C/D의 실제 `course_applications` 수
@@ -196,3 +203,13 @@ curl -i https://sugang-5de3.onrender.com/performance/ping
 ```bash
 unset PERFORMANCE_TEST_TOKEN
 ```
+
+## 현재 측정 결과
+
+A와 B의 최초 기준선 측정 및 B의 20/30/40 VU 경계 탐색 결과는 다음 문서에 정리했다.
+
+```text
+docs/performance/05-first-bottleneck-result.md
+```
+
+현재 최초 포화 신호는 CPU나 Heap이 아니라 DB 접근 이후의 Hikari connection 대기 구간에서 확인됐다. 다만 Hikari 포화는 느린 쿼리나 네트워크 지연의 결과일 수 있으므로 커넥션 풀 증설은 아직 적용하지 않는다.

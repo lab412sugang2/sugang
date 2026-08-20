@@ -32,9 +32,12 @@ export const options = {
 export default function () {
   const response = http.get(`${BASE_URL}/performance/ping`, {
     tags: { endpoint: 'perf_ping' },
+    timeout: '10s',
   });
   const succeeded = response.status === 200;
-  scenarioRequestDuration.add(response.timings.duration);
+  if (succeeded) {
+    scenarioRequestDuration.add(response.timings.duration);
+  }
   scenarioRequestFailed.add(!succeeded);
   scenarioRequests.add(1);
   check(response, { 'ping returns 200': () => succeeded });

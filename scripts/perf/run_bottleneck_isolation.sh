@@ -8,6 +8,8 @@ PROM_URL="${PROM_URL:-http://127.0.0.1:9090}"
 APP_TAG="${APP_TAG:-sugang-local}"
 HIKARI_POOL="${HIKARI_POOL:-HikariPool-1}"
 PERFORMANCE_TEST_TOKEN="${PERFORMANCE_TEST_TOKEN:-}"
+PERFORMANCE_TEST_TOKEN="${PERFORMANCE_TEST_TOKEN//$'\r'/}"
+PERFORMANCE_TEST_TOKEN="${PERFORMANCE_TEST_TOKEN//$'\n'/}"
 RAMP_DURATION="${RAMP_DURATION:-30s}"
 HOLD_DURATION="${HOLD_DURATION:-2m30s}"
 OBS_WINDOW="${OBS_WINDOW:-1m}"
@@ -16,6 +18,7 @@ SCENARIOS="${SCENARIOS:-ping course-read distributed-apply same-course-apply}"
 COURSE_ID="${COURSE_ID:-1}"
 COURSE_COUNT="${COURSE_COUNT:-20}"
 CAPACITY="${CAPACITY:-100000}"
+STOP_ON_THRESHOLD_FAILURE="${STOP_ON_THRESHOLD_FAILURE:-true}"
 RUN_ID="$(date +%Y%m%d-%H%M%S)"
 OUT_DIR="${ROOT_DIR}/tmp/perf-bottleneck-isolation/${RUN_ID}"
 
@@ -38,6 +41,9 @@ if [[ "${requires_mutation_token}" == "true" && -z "${PERFORMANCE_TEST_TOKEN}" ]
   exit 1
 fi
 
+# k6는 시스템 환경 변수를 __ENV로 전달한다. 토큰을 -e 인자로 넘겨 프로세스 목록에 노출하지 않는다.
+export PERFORMANCE_TEST_TOKEN
+
 mkdir -p "${OUT_DIR}"
 
 script_for() {
@@ -54,12 +60,17 @@ is_mutation_scenario() {
   [[ "$1" == "distributed-apply" || "$1" == "same-course-apply" ]]
 }
 
+curl_with_token() {
+  # curl의 프로세스 인자에 토큰이 노출되지 않도록 설정을 표준 입력으로 전달한다.
+  printf 'header = "X-Performance-Test-Token: %s"\n' "${PERFORMANCE_TEST_TOKEN}" |
+    curl --config - "$@"
+}
+
 cleanup_fixtures() {
   if [[ -z "${PERFORMANCE_TEST_TOKEN}" ]]; then
     return 0
   fi
-  curl -fsS -X POST \
-    -H "X-Performance-Test-Token: ${PERFORMANCE_TEST_TOKEN}" \
+  curl_with_token -fsS -X POST \
     "${BASE_URL}/performance/fixtures/cleanup" >/dev/null 2>&1 || true
 }
 
@@ -70,6 +81,15 @@ if [[ "${ping_status}" != "200" ]]; then
   echo "성능 테스트 API가 준비되지 않았습니다: GET /performance/ping -> ${ping_status}" >&2
   echo "Render에서 APP_PERFORMANCE_TEST_ENABLED=true 설정과 재배포를 확인하세요." >&2
   exit 1
+fi
+
+if [[ "${requires_mutation_token}" == "true" ]]; then
+  token_status="$(curl_with_token -sS -o /dev/null -w '%{http_code}' -X POST \
+    "${BASE_URL}/performance/fixtures/cleanup" || true)"
+  if [[ "${token_status}" != "200" ]]; then
+    echo "성능 테스트 토큰이 Render 설정과 일치하지 않습니다: ${token_status}" >&2
+    exit 1
+  fi
 fi
 
 if ! curl -fsS "${PROM_URL}/-/ready" >/dev/null 2>&1; then
@@ -120,11 +140,11 @@ cat > "${RESULT_MD}" <<MD
 - Hold: ${HOLD_DURATION}
 - Observation window: ${OBS_WINDOW}
 
-| Scenario | VUs | k6 exit | p95 ms | p99 ms | fail % | req/s | rejected % | Process CPU max % | System CPU max % | Heap max % | Tomcat busy/max % | GC pause sec | Hikari active/max % | Hikari pending max | Hikari timeouts | DB applied | DB actual | Count mismatch |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Scenario | VUs | k6 exit | success p95 ms | success p99 ms | fail % | req/s | rejected % | Process CPU max % | System CPU max % | Heap max % | Tomcat busy/max % | GC pause sec | Hikari active/max % | Hikari pending max | Hikari acquire avg ms | Hikari acquire max ms | Hikari usage avg ms | Hikari usage max ms | Hikari timeouts | DB applied | DB actual | Count mismatch |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
 MD
 
-echo "scenario,vus,k6_exit,p95_ms,p99_ms,fail_rate_pct,req_per_sec,rejected_pct,process_cpu_max_pct,system_cpu_max_pct,heap_max_pct,tomcat_busy_pct,gc_pause_seconds,hikari_active_pct,hikari_pending_max,hikari_timeouts,db_applied,db_actual,count_mismatch" > "${RESULT_CSV}"
+echo "scenario,vus,k6_exit,p95_ms,p99_ms,fail_rate_pct,req_per_sec,rejected_pct,process_cpu_max_pct,system_cpu_max_pct,heap_max_pct,tomcat_busy_pct,gc_pause_seconds,hikari_active_pct,hikari_pending_max,hikari_acquire_avg_ms,hikari_acquire_max_ms,hikari_usage_avg_ms,hikari_usage_max_ms,hikari_timeouts,db_applied,db_actual,count_mismatch" > "${RESULT_CSV}"
 
 echo "run_id=${RUN_ID}"
 echo "base_url=${BASE_URL}"
@@ -134,6 +154,7 @@ echo "scenarios=${SCENARIOS}"
 echo "vus_list=${VUS_LIST}"
 echo "ramp=${RAMP_DURATION}, hold=${HOLD_DURATION}, obs_window=${OBS_WINDOW}"
 
+stop_reason=""
 for scenario in ${SCENARIOS}; do
   script="$(script_for "${scenario}")"
 
@@ -151,7 +172,6 @@ for scenario in ${SCENARIOS}; do
     k6 run \
       --summary-export "${json_file}" \
       -e BASE_URL="${BASE_URL}" \
-      -e PERFORMANCE_TEST_TOKEN="${PERFORMANCE_TEST_TOKEN}" \
       -e AUTO_CLEANUP=false \
       -e VUS_TARGET="${vus}" \
       -e RAMP_DURATION="${RAMP_DURATION}" \
@@ -185,6 +205,10 @@ for scenario in ${SCENARIOS}; do
     gc_pause="$(prom_query "sum(increase(jvm_gc_pause_seconds_sum{application=\"${APP_TAG}\"}[${OBS_WINDOW}]))")"
     hikari_active="$(prom_query "100 * max_over_time(((max(hikaricp_connections_active{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}) / max(hikaricp_connections_max{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"})))[${OBS_WINDOW}:5s])")"
     hikari_pending="$(prom_query "max_over_time(hikaricp_connections_pending{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])")"
+    hikari_acquire_avg="$(prom_query "1000 * sum(increase(hikaricp_connections_acquire_seconds_sum{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])) / clamp_min(sum(increase(hikaricp_connections_acquire_seconds_count{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])), 1)")"
+    hikari_acquire_max="$(prom_query "1000 * max_over_time(hikaricp_connections_acquire_seconds_max{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])")"
+    hikari_usage_avg="$(prom_query "1000 * sum(increase(hikaricp_connections_usage_seconds_sum{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])) / clamp_min(sum(increase(hikaricp_connections_usage_seconds_count{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])), 1)")"
+    hikari_usage_max="$(prom_query "1000 * max_over_time(hikaricp_connections_usage_seconds_max{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])")"
     hikari_timeouts="$(prom_query "increase(hikaricp_connections_timeout_total{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])")"
 
     db_applied="-"
@@ -192,8 +216,7 @@ for scenario in ${SCENARIOS}; do
     count_mismatch="-"
     if is_mutation_scenario "${scenario}"; then
       status_file="${OUT_DIR}/${scenario}-${vus}-final-state.json"
-      if curl -fsS \
-        -H "X-Performance-Test-Token: ${PERFORMANCE_TEST_TOKEN}" \
+      if curl_with_token -fsS \
         "${BASE_URL}/performance/fixtures/status" > "${status_file}"; then
         db_applied="$(jq -r '[.courses[].appliedCount] | add // 0' "${status_file}")"
         db_actual="$(jq -r '[.courses[].actualApplications] | add // 0' "${status_file}")"
@@ -206,23 +229,32 @@ for scenario in ${SCENARIOS}; do
       cleanup_fixtures
     fi
 
-    printf '| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n' \
+    printf '| %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s | %s |\n' \
       "${scenario}" "${vus}" "${k6_exit}" \
       "$(fmt2 "${k6_p95}")" "$(fmt2 "${k6_p99}")" "$(to_percent "${fail_rate}")" \
       "$(fmt2 "${req_rate}")" "$(to_percent "${rejected_rate}")" \
       "$(fmt2 "${process_cpu}")" "$(fmt2 "${system_cpu}")" "$(fmt2 "${heap_max}")" \
       "$(fmt2 "${tomcat_busy}")" "$(fmt2 "${gc_pause}")" "$(fmt2 "${hikari_active}")" \
-      "$(fmt2 "${hikari_pending}")" "$(fmt2 "${hikari_timeouts}")" \
+      "$(fmt2 "${hikari_pending}")" "$(fmt2 "${hikari_acquire_avg}")" \
+      "$(fmt2 "${hikari_acquire_max}")" "$(fmt2 "${hikari_usage_avg}")" \
+      "$(fmt2 "${hikari_usage_max}")" "$(fmt2 "${hikari_timeouts}")" \
       "${db_applied}" "${db_actual}" "${count_mismatch}" >> "${RESULT_MD}"
 
-    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
+    printf '%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s\n' \
       "${scenario}" "${vus}" "${k6_exit}" \
       "$(fmt2 "${k6_p95}")" "$(fmt2 "${k6_p99}")" "$(to_percent "${fail_rate}")" \
       "$(fmt2 "${req_rate}")" "$(to_percent "${rejected_rate}")" \
       "$(fmt2 "${process_cpu}")" "$(fmt2 "${system_cpu}")" "$(fmt2 "${heap_max}")" \
       "$(fmt2 "${tomcat_busy}")" "$(fmt2 "${gc_pause}")" "$(fmt2 "${hikari_active}")" \
-      "$(fmt2 "${hikari_pending}")" "$(fmt2 "${hikari_timeouts}")" \
+      "$(fmt2 "${hikari_pending}")" "$(fmt2 "${hikari_acquire_avg}")" \
+      "$(fmt2 "${hikari_acquire_max}")" "$(fmt2 "${hikari_usage_avg}")" \
+      "$(fmt2 "${hikari_usage_max}")" "$(fmt2 "${hikari_timeouts}")" \
       "${db_applied}" "${db_actual}" "${count_mismatch}" >> "${RESULT_CSV}"
+
+    if [[ "${STOP_ON_THRESHOLD_FAILURE}" == "true" && "${k6_exit}" -ne 0 ]]; then
+      stop_reason="${scenario}/${vus} VU에서 k6 exit ${k6_exit} 발생"
+      break 2
+    fi
   done
 done
 
@@ -233,3 +265,9 @@ echo
 echo "저장 완료:"
 echo "  ${RESULT_MD}"
 echo "  ${RESULT_CSV}"
+
+if [[ -n "${stop_reason}" ]]; then
+  echo
+  echo "안전 중단: ${stop_reason}"
+  exit 3
+fi
