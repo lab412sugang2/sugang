@@ -25,7 +25,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "${DS_PROMETHEUS}"
+        "uid": "prometheus"
       },
       "fieldConfig": {
         "defaults": {
@@ -47,7 +47,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -75,7 +75,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {
         "defaults": {
           "unit": "s",
@@ -108,7 +108,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"unit": "percentunit"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 0, "y": 8},
       "id": 4,
@@ -120,7 +120,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {
         "defaults": {
           "unit": "percent",
@@ -148,22 +148,22 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 16, "y": 8},
       "id": 6,
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(jvm_gc_pause_seconds_bucket{application=~\"$app\"}[5m])))",
-          "legendFormat": "GC pause p95",
+          "expr": "max(jvm_gc_pause_seconds_max{application=~\"$app\"})",
+          "legendFormat": "GC pause max",
           "refId": "A"
         }
       ],
-      "title": "GC Pause p95",
+      "title": "GC Pause Max",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"unit": "percent"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 0, "y": 16},
       "id": 7,
@@ -178,7 +178,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 8, "y": 16},
       "id": 8,
@@ -198,22 +198,22 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"unit": "percent"}, "overrides": []},
       "gridPos": {"h": 8, "w": 8, "x": 16, "y": 16},
       "id": 9,
       "targets": [
         {
-          "expr": "100 * max(tomcat_threads_busy_threads{application=~\"$app\"}) / max(tomcat_threads_config_max_threads{application=~\"$app\"})",
+          "expr": "100 * sum(tomcat_threads_busy_threads{application=~\"$app\"}) / clamp_min(sum(tomcat_threads_config_max_threads{application=~\"$app\"}), 1)",
           "legendFormat": "busy/max %",
           "refId": "A"
         }
       ],
-      "title": "Tomcat Busy/Max %",
+      "title": "Tomcat Busy / Max %",
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"unit": "reqps"}, "overrides": []},
       "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
       "id": 10,
@@ -228,7 +228,7 @@
       "type": "timeseries"
     },
     {
-      "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
       "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
       "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
       "id": 11,
@@ -250,7 +250,7 @@
     "list": [
       {
         "current": {"selected": false, "text": "All", "value": ".*"},
-        "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
         "definition": "label_values(http_server_requests_seconds_count, application)",
         "hide": 0,
         "includeAll": true,
@@ -267,7 +267,7 @@
       },
       {
         "current": {"selected": false, "text": "All", "value": ".*"},
-        "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
         "definition": "label_values(hikaricp_connections_active{application=~\"$app\"}, pool)",
         "hide": 0,
         "includeAll": true,
@@ -283,11 +283,11 @@
         "type": "query"
       },
       {
-        "current": {"selected": true, "text": "/saveTkcrsApl.do", "value": "/saveTkcrsApl.do"},
-        "datasource": {"type": "prometheus", "uid": "${DS_PROMETHEUS}"},
+        "current": {"selected": false, "text": "All", "value": ".*"},
+        "datasource": {"type": "prometheus", "uid": "prometheus"},
         "definition": "label_values(http_server_requests_seconds_count{application=~\"$app\"}, uri)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "uri",
         "multi": false,
         "name": "uri",
