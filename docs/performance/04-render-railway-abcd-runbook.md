@@ -213,3 +213,11 @@ docs/performance/05-first-bottleneck-result.md
 ```
 
 현재 최초 포화 신호는 CPU나 Heap이 아니라 DB 접근 이후의 Hikari connection 대기 구간에서 확인됐다. 다만 Hikari 포화는 느린 쿼리나 네트워크 지연의 결과일 수 있으므로 커넥션 풀 증설은 아직 적용하지 않는다.
+
+C와 D의 10/20 VU 비교 결과는 다음 문서에 정리했다.
+
+```text
+docs/performance/06-distributed-vs-hot-row-result.md
+```
+
+20 VU에서 동일 강의 집중 신청은 분산 신청보다 p95가 약 2.50배 증가하고 처리량이 약 43.5% 감소했다. 정합성은 유지됐지만 동일 강의 row의 lock 경합으로 connection 점유와 획득 대기가 증가한 것으로 분석했다.
