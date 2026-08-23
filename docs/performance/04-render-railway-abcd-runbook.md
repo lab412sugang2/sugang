@@ -221,3 +221,11 @@ docs/performance/06-distributed-vs-hot-row-result.md
 ```
 
 20 VU에서 동일 강의 집중 신청은 분산 신청보다 p95가 약 2.50배 증가하고 처리량이 약 43.5% 감소했다. 정합성은 유지됐지만 동일 강의 row의 lock 경합으로 connection 점유와 획득 대기가 증가한 것으로 분석했다.
+
+트랜잭션 내부 단계별 측정 계획은 다음 문서에 정리했다.
+
+```text
+docs/performance/07-transaction-phase-measurement-plan.md
+```
+
+이 계측을 배포한 뒤 `registration-phases.md`와 `registration-phases.csv`에서 트랜잭션 전체, 조건부 UPDATE, `saveAndFlush`의 평균과 p95를 비교한다.

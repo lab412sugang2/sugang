@@ -241,6 +241,51 @@
       ],
       "title": "URI p95 Latency",
       "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 32},
+      "id": 12,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le, outcome) (rate(sugang_registration_transaction_seconds_bucket{application=~\"$app\"}[5m])))",
+          "legendFormat": "{{outcome}} p95",
+          "refId": "A"
+        }
+      ],
+      "title": "Registration Transaction p95",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 32},
+      "id": 13,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(sugang_registration_phase_seconds_bucket{application=~\"$app\",phase=\"conditional_update\"}[5m])))",
+          "legendFormat": "conditional UPDATE p95",
+          "refId": "A"
+        }
+      ],
+      "title": "Conditional UPDATE p95",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 32},
+      "id": 14,
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(sugang_registration_phase_seconds_bucket{application=~\"$app\",phase=\"application_flush\"}[5m])))",
+          "legendFormat": "saveAndFlush p95",
+          "refId": "A"
+        }
+      ],
+      "title": "Application Flush p95",
+      "type": "timeseries"
     }
   ],
   "schemaVersion": 39,

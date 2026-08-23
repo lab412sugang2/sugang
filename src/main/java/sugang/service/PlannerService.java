@@ -17,6 +17,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static sugang.service.RegistrationMetrics.PHASE_APPLICATIONS_LOOKUP;
+import static sugang.service.RegistrationMetrics.PHASE_APPLICATION_FLUSH;
+import static sugang.service.RegistrationMetrics.PHASE_CONDITIONAL_UPDATE;
+import static sugang.service.RegistrationMetrics.PHASE_COURSE_LOOKUP;
+import static sugang.service.RegistrationMetrics.PHASE_DUPLICATE_CHECK;
+
 @Service
 public class PlannerService {
 
@@ -26,10 +32,14 @@ public class PlannerService {
 
     private final CourseRepository courseRepository;
     private final CourseApplicationRepository courseApplicationRepository;
+    private final RegistrationMetrics registrationMetrics;
 
-    public PlannerService(CourseRepository courseRepository, CourseApplicationRepository courseApplicationRepository) {
+    public PlannerService(CourseRepository courseRepository,
+                          CourseApplicationRepository courseApplicationRepository,
+                          RegistrationMetrics registrationMetrics) {
         this.courseRepository = courseRepository;
         this.courseApplicationRepository = courseApplicationRepository;
+        this.registrationMetrics = registrationMetrics;
     }
 
     @PostConstruct
@@ -83,27 +93,45 @@ public class PlannerService {
 
     @Transactional
     public void applyCourse(String studentId, Long courseId) {
-        Course course = courseRepository.findById(courseId)
+        registrationMetrics.observeTransactionCompletion();
+
+        Course course = registrationMetrics.recordPhase(
+                        PHASE_COURSE_LOOKUP,
+                        () -> courseRepository.findById(courseId)
+                )
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 과목입니다."));
 
         if (course.isCanceled()) {
             throw new IllegalStateException("폐강된 과목은 신청할 수 없습니다.");
         }
-        if (courseApplicationRepository.existsByStudentIdAndCourseId(studentId, courseId)) {
+        boolean alreadyApplied = registrationMetrics.recordPhase(
+                PHASE_DUPLICATE_CHECK,
+                () -> courseApplicationRepository.existsByStudentIdAndCourseId(studentId, courseId)
+        );
+        if (alreadyApplied) {
             throw new IllegalStateException("이미 신청된 과목입니다.");
         }
 
-        List<CourseApplication> apps = courseApplicationRepository.findByStudentIdOrderByCreatedAtAsc(studentId);
+        List<CourseApplication> apps = registrationMetrics.recordPhase(
+                PHASE_APPLICATIONS_LOOKUP,
+                () -> courseApplicationRepository.findByStudentIdOrderByCreatedAtAsc(studentId)
+        );
         validateCreditLimit(apps, course);
         validateTimeConflict(apps, course);
 
-        int updatedRows = courseRepository.increaseAppliedCountIfNotFull(courseId);
+        int updatedRows = registrationMetrics.recordPhase(
+                PHASE_CONDITIONAL_UPDATE,
+                () -> courseRepository.increaseAppliedCountIfNotFull(courseId)
+        );
         if (updatedRows == 0) {
             throw new IllegalStateException("마감된 강좌입니다.");
         }
 
         try {
-            courseApplicationRepository.saveAndFlush(new CourseApplication(studentId, course));
+            registrationMetrics.recordPhase(
+                    PHASE_APPLICATION_FLUSH,
+                    () -> courseApplicationRepository.saveAndFlush(new CourseApplication(studentId, course))
+            );
         } catch (DataIntegrityViolationException e) {
             throw new IllegalStateException("이미 신청된 과목입니다.", e);
         }

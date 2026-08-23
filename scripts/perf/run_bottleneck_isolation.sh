@@ -128,6 +128,8 @@ to_percent() {
 
 RESULT_MD="${OUT_DIR}/summary.md"
 RESULT_CSV="${OUT_DIR}/summary.csv"
+PHASE_RESULT_MD="${OUT_DIR}/registration-phases.md"
+PHASE_RESULT_CSV="${OUT_DIR}/registration-phases.csv"
 
 cat > "${RESULT_MD}" <<MD
 # A/B/C/D 병목 분리 테스트 요약
@@ -145,6 +147,15 @@ cat > "${RESULT_MD}" <<MD
 MD
 
 echo "scenario,vus,k6_exit,p95_ms,p99_ms,fail_rate_pct,req_per_sec,rejected_pct,process_cpu_max_pct,system_cpu_max_pct,heap_max_pct,tomcat_busy_pct,gc_pause_seconds,hikari_active_pct,hikari_pending_max,hikari_acquire_avg_ms,hikari_acquire_max_ms,hikari_usage_avg_ms,hikari_usage_max_ms,hikari_timeouts,db_applied,db_actual,count_mismatch" > "${RESULT_CSV}"
+
+cat > "${PHASE_RESULT_MD}" <<MD
+# 수강신청 트랜잭션 단계별 시간
+
+| Scenario | VUs | transaction avg ms | transaction p95 ms | conditional UPDATE avg ms | conditional UPDATE p95 ms | saveAndFlush avg ms | saveAndFlush p95 ms |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+MD
+
+echo "scenario,vus,transaction_avg_ms,transaction_p95_ms,conditional_update_avg_ms,conditional_update_p95_ms,save_flush_avg_ms,save_flush_p95_ms" > "${PHASE_RESULT_CSV}"
 
 echo "run_id=${RUN_ID}"
 echo "base_url=${BASE_URL}"
@@ -211,6 +222,13 @@ for scenario in ${SCENARIOS}; do
     hikari_usage_max="$(prom_query "1000 * max_over_time(hikaricp_connections_usage_seconds_max{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])")"
     hikari_timeouts="$(prom_query "increase(hikaricp_connections_timeout_total{application=\"${APP_TAG}\",pool=\"${HIKARI_POOL}\"}[${OBS_WINDOW}])")"
 
+    transaction_avg="$(prom_query "1000 * sum(increase(sugang_registration_transaction_seconds_sum{application=\"${APP_TAG}\"}[${OBS_WINDOW}])) / clamp_min(sum(increase(sugang_registration_transaction_seconds_count{application=\"${APP_TAG}\"}[${OBS_WINDOW}])), 1)")"
+    transaction_p95="$(prom_query "1000 * histogram_quantile(0.95, sum by (le) (increase(sugang_registration_transaction_seconds_bucket{application=\"${APP_TAG}\"}[${OBS_WINDOW}])))")"
+    conditional_update_avg="$(prom_query "1000 * sum(increase(sugang_registration_phase_seconds_sum{application=\"${APP_TAG}\",phase=\"conditional_update\"}[${OBS_WINDOW}])) / clamp_min(sum(increase(sugang_registration_phase_seconds_count{application=\"${APP_TAG}\",phase=\"conditional_update\"}[${OBS_WINDOW}])), 1)")"
+    conditional_update_p95="$(prom_query "1000 * histogram_quantile(0.95, sum by (le) (increase(sugang_registration_phase_seconds_bucket{application=\"${APP_TAG}\",phase=\"conditional_update\"}[${OBS_WINDOW}])))")"
+    save_flush_avg="$(prom_query "1000 * sum(increase(sugang_registration_phase_seconds_sum{application=\"${APP_TAG}\",phase=\"application_flush\"}[${OBS_WINDOW}])) / clamp_min(sum(increase(sugang_registration_phase_seconds_count{application=\"${APP_TAG}\",phase=\"application_flush\"}[${OBS_WINDOW}])), 1)")"
+    save_flush_p95="$(prom_query "1000 * histogram_quantile(0.95, sum by (le) (increase(sugang_registration_phase_seconds_bucket{application=\"${APP_TAG}\",phase=\"application_flush\"}[${OBS_WINDOW}])))")"
+
     db_applied="-"
     db_actual="-"
     count_mismatch="-"
@@ -251,6 +269,20 @@ for scenario in ${SCENARIOS}; do
       "$(fmt2 "${hikari_usage_max}")" "$(fmt2 "${hikari_timeouts}")" \
       "${db_applied}" "${db_actual}" "${count_mismatch}" >> "${RESULT_CSV}"
 
+    if is_mutation_scenario "${scenario}"; then
+      printf '| %s | %s | %s | %s | %s | %s | %s | %s |\n' \
+        "${scenario}" "${vus}" \
+        "$(fmt2 "${transaction_avg}")" "$(fmt2 "${transaction_p95}")" \
+        "$(fmt2 "${conditional_update_avg}")" "$(fmt2 "${conditional_update_p95}")" \
+        "$(fmt2 "${save_flush_avg}")" "$(fmt2 "${save_flush_p95}")" >> "${PHASE_RESULT_MD}"
+
+      printf '%s,%s,%s,%s,%s,%s,%s,%s\n' \
+        "${scenario}" "${vus}" \
+        "$(fmt2 "${transaction_avg}")" "$(fmt2 "${transaction_p95}")" \
+        "$(fmt2 "${conditional_update_avg}")" "$(fmt2 "${conditional_update_p95}")" \
+        "$(fmt2 "${save_flush_avg}")" "$(fmt2 "${save_flush_p95}")" >> "${PHASE_RESULT_CSV}"
+    fi
+
     if [[ "${STOP_ON_THRESHOLD_FAILURE}" == "true" && "${k6_exit}" -ne 0 ]]; then
       stop_reason="${scenario}/${vus} VU에서 k6 exit ${k6_exit} 발생"
       break 2
@@ -265,6 +297,8 @@ echo
 echo "저장 완료:"
 echo "  ${RESULT_MD}"
 echo "  ${RESULT_CSV}"
+echo "  ${PHASE_RESULT_MD}"
+echo "  ${PHASE_RESULT_CSV}"
 
 if [[ -n "${stop_reason}" ]]; then
   echo
