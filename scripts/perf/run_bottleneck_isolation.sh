@@ -19,8 +19,9 @@ COURSE_ID="${COURSE_ID:-1}"
 COURSE_COUNT="${COURSE_COUNT:-20}"
 CAPACITY="${CAPACITY:-100000}"
 STOP_ON_THRESHOLD_FAILURE="${STOP_ON_THRESHOLD_FAILURE:-true}"
-RUN_ID="$(date +%Y%m%d-%H%M%S)"
-OUT_DIR="${ROOT_DIR}/tmp/perf-bottleneck-isolation/${RUN_ID}"
+RUN_ID="${PERF_RUN_ID:-$(date +%Y%m%d-%H%M%S)}"
+OUT_ROOT="${OUT_ROOT:-${ROOT_DIR}/tmp/perf-bottleneck-isolation}"
+OUT_DIR="${OUT_ROOT}/${RUN_ID}"
 
 for command in k6 jq curl awk; do
   if ! command -v "${command}" >/dev/null 2>&1; then
@@ -71,12 +72,16 @@ cleanup_fixtures() {
     return 0
   fi
   curl_with_token -fsS -X POST \
+    --retry 3 --retry-all-errors --retry-delay 2 \
     "${BASE_URL}/performance/fixtures/cleanup" >/dev/null 2>&1 || true
 }
 
 trap cleanup_fixtures EXIT
 
-ping_status="$(curl -sS -o /dev/null -w '%{http_code}' "${BASE_URL}/performance/ping" || true)"
+ping_status="$(curl -sS -o /dev/null -w '%{http_code}' \
+  --connect-timeout 10 --max-time 20 \
+  --retry 5 --retry-all-errors --retry-delay 2 \
+  "${BASE_URL}/performance/ping" || true)"
 if [[ "${ping_status}" != "200" ]]; then
   echo "성능 테스트 API가 준비되지 않았습니다: GET /performance/ping -> ${ping_status}" >&2
   echo "Render에서 APP_PERFORMANCE_TEST_ENABLED=true 설정과 재배포를 확인하세요." >&2
@@ -85,6 +90,8 @@ fi
 
 if [[ "${requires_mutation_token}" == "true" ]]; then
   token_status="$(curl_with_token -sS -o /dev/null -w '%{http_code}' -X POST \
+    --connect-timeout 10 --max-time 20 \
+    --retry 5 --retry-all-errors --retry-delay 2 \
     "${BASE_URL}/performance/fixtures/cleanup" || true)"
   if [[ "${token_status}" != "200" ]]; then
     echo "성능 테스트 토큰이 Render 설정과 일치하지 않습니다: ${token_status}" >&2
@@ -235,6 +242,7 @@ for scenario in ${SCENARIOS}; do
     if is_mutation_scenario "${scenario}"; then
       status_file="${OUT_DIR}/${scenario}-${vus}-final-state.json"
       if curl_with_token -fsS \
+        --retry 3 --retry-all-errors --retry-delay 2 \
         "${BASE_URL}/performance/fixtures/status" > "${status_file}"; then
         db_applied="$(jq -r '[.courses[].appliedCount] | add // 0' "${status_file}")"
         db_actual="$(jq -r '[.courses[].actualApplications] | add // 0' "${status_file}")"

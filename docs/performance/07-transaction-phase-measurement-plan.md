@@ -1,7 +1,7 @@
 # 수강신청 트랜잭션 단계별 측정 계획
 
 - 작성일: 2026-08-23
-- 상태: 개선 전 측정 장치 추가
+- 상태: 측정 완료
 - 원칙: 동작과 트랜잭션 범위는 변경하지 않는다.
 
 ## 문제
@@ -40,7 +40,7 @@ Micrometer Timer를 다음 단계에 추가한다.
 | `sugang.registration.phase` | `conditional_update` | 조건부 UPDATE와 row lock 대기 |
 | `sugang.registration.phase` | `application_flush` | 신청 INSERT와 flush |
 
-트랜잭션 전체 Timer는 Spring의 `afterCompletion`에서 종료해 commit 또는 rollback 완료까지 포함한다.
+트랜잭션 Timer는 `applyCourse()` 진입 시 시작하고 Spring의 `afterCompletion`에서 종료해 commit 또는 rollback 완료까지 포함한다. Spring proxy가 트랜잭션을 시작한 뒤 서비스 메서드가 호출되므로 transaction 획득·시작 오버헤드는 포함하지 않는다.
 
 ## 검증 방법
 
@@ -61,3 +61,18 @@ Micrometer Timer를 다음 단계에 추가한다.
 | 단계 합보다 전체 트랜잭션이 크게 김 | commit 또는 측정하지 않은 구간 검토 |
 
 측정 결과를 확인하기 전에는 트랜잭션 범위 축소, `saveAndFlush` 변경, Hikari pool 증설을 적용하지 않는다.
+
+## 측정 결과
+
+2026-09-01에 C와 D를 20 VU로 각각 3회 실행했다. 순서 영향을 줄이기 위해 C→D, D→C, C→D 순으로 교차 실행했다.
+
+- 전체 트랜잭션 p95 중앙값: C 709.97ms, D 1771.67ms, 약 2.50배
+- 조건부 UPDATE p95 중앙값: C 140.13ms, D 1413.76ms, 약 10.09배
+- `saveAndFlush()` p95 중앙값: C 107.70ms, D 108.18ms, 약 1.00배
+- Hikari 획득 평균 중앙값: C 23.01ms, D 564.05ms, 약 24.5배
+- C의 Hikari pending 중앙값은 0, D는 세 번 모두 4
+- 6회 모두 HTTP 실패, Hikari timeout, DB 카운트 불일치 0건
+
+가설과 같이 동일 강의 시나리오의 조건부 UPDATE 시간이 가장 크게 증가했다. `saveAndFlush()`는 C와 D가 거의 같아 hot-row 지연의 지배 구간이 아니었다. Hikari 대기는 조건부 UPDATE 대기로 connection 반환이 늦어진 후속 증상으로 해석했다.
+
+자세한 결과와 표현상 한계는 `docs/performance/08-hot-row-phase-result.md`에 기록했다.

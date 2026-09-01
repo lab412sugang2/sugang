@@ -1,6 +1,6 @@
 # PAAR 포트폴리오 정리
 
-- 작성일: 2026-08-23
+- 갱신일: 2026-09-01
 - 작성 원칙: 실제 실험으로 확인한 숫자만 사용하고 가설, 분석, 개선 결과를 구분한다.
 - 설명 구조: `Problem -> Action -> Achievement -> Reflection`
 - 기술 선택 구조: `Why -> Alternatives -> Trade-off -> Verification`
@@ -156,26 +156,29 @@ DB 쓰기가 느린 것과 모든 사용자가 같은 강의를 갱신해 느린
 
 ### Achievement
 
-10 VU에서는 C와 D의 차이가 작았다. 20 VU에서는 차이가 명확해졌다.
+10 VU에서는 C와 D의 차이가 작았다. 20 VU에서는 C와 D를 각각 3회 실행하고 순서를 교차했다. 아래 값은 3회 중앙값이다.
 
-| 항목 | C: 분산 신청 | D: 동일 강의 집중 |
-| --- | ---: | ---: |
-| p95 | 1095.57ms | 2734.98ms |
-| p99 | 1350.19ms | 2994.33ms |
-| 처리량 | 9.02 req/s | 5.10 req/s |
-| Hikari pending | 0 | 4 |
-| connection 획득 평균 | 26.07ms | 657.28ms |
-| connection 사용 평균 | 737.60ms | 1833.59ms |
-| HTTP 실패율 | 0% | 0% |
-| 카운트 불일치 | 0 | 0 |
+| 항목 | C: 분산 신청 | D: 동일 강의 집중 | 변화 |
+| --- | ---: | ---: | ---: |
+| HTTP p95 | 1025.71ms | 2519.56ms | 2.46배 |
+| HTTP p99 | 1117.61ms | 2581.04ms | 2.31배 |
+| 처리량 | 9.29 req/s | 5.40 req/s | 41.9% 감소 |
+| 전체 트랜잭션 p95 | 709.97ms | 1771.67ms | 2.50배 |
+| 조건부 UPDATE p95 | 140.13ms | 1413.76ms | 10.09배 |
+| 신청 내역 flush p95 | 107.70ms | 108.18ms | 1.00배 |
+| connection 획득 평균 | 23.01ms | 564.05ms | 24.5배 |
+| connection 사용 평균 | 696.11ms | 1732.30ms | 2.49배 |
+| Hikari pending 최대 중앙값 | 0 | 4 | D는 3회 모두 4 |
+| HTTP 실패율 | 0% | 0% | 동일 |
+| 카운트 불일치 | 0 | 0 | 동일 |
 
-D는 C보다 p95가 약 2.50배 증가하고 처리량이 약 43.5% 감소했다. 반면 D의 CPU는 8%, Heap은 64.33%, Tomcat busy/max는 7.5%였다.
+D는 실행 순서와 관계없이 세 번 모두 C보다 느렸다. 조건부 UPDATE의 차이는 컸지만 `saveAndFlush()`는 거의 같았다.
 
 ### Reflection
 
-조건부 UPDATE는 정합성을 보장하지만 동일 row 변경을 병렬화하지는 못한다. 동일 강의 UPDATE의 row lock 대기로 트랜잭션과 connection 점유가 길어지고, Hikari pending은 그 결과로 나타난 것으로 분석했다.
+조건부 UPDATE는 정합성을 보장하지만 동일 row 변경을 병렬화하지는 못한다. 요청 대상 row 분포만 변경한 통제 실험에서 조건부 UPDATE p95가 약 10.1배 증가했고 flush는 동일했다. 동일 강의 UPDATE의 row lock 대기로 트랜잭션과 connection 점유가 길어지고, Hikari pending은 그 결과로 나타난 것으로 분석했다.
 
-아직 개선을 적용하지 않았다. 조건부 UPDATE, `saveAndFlush()`, commit까지의 시간을 직접 측정한 뒤 lock 보유 시간을 줄일 수 있는 가장 작은 변경을 선택한다.
+MySQL lock wait 행을 직접 수집한 것은 아니므로 “lock wait를 직접 관찰했다”라고 과장하지 않는다. 현재 결과는 단계 Timer와 통제 변수 비교를 통해 동일 row lock 대기 해석을 강하게 지지한다. 아직 개선은 적용하지 않았으며, 가장 작은 변경 하나를 선택해 동일 조건으로 검증한다.
 
 ### Why / Alternatives / Trade-off / Verification
 
@@ -218,20 +221,11 @@ Render 배포가 성공했지만 `/actuator/health`의 DB는 MySQL이 아니라 
 
 > Render-Railway 환경에서 DB 미사용·조회·분산 쓰기·동일 row 쓰기로 부하 경로를 분리해 단건 조회 40 VU에서 p95 1.27초와 Hikari pending 10을 관찰하고 최초 포화 범위를 DB 접근 이후로 좁혔습니다.
 
-> 20 VU의 동일 강의 집중 신청은 분산 신청보다 p95가 2.50배 높고 처리량이 43.5% 낮았으며, 정합성을 유지한 상태에서 동일 row 경합이 connection 점유와 획득 대기를 증가시키는 현상을 확인했습니다.
+> Render-Railway 환경에서 C/D를 20 VU로 각각 3회 반복한 결과, 동일 강의 집중 신청은 분산 신청보다 p95 중앙값이 2.46배 높고 처리량이 41.9% 낮았습니다. 단계별 Timer에서 조건부 UPDATE p95가 10.09배 증가한 반면 신청 내역 flush는 동일해, 정합성을 유지하는 동일 row UPDATE 직렬화가 지배 구간임을 확인했습니다.
 
 ## 현재 진행 중인 검증
 
-신청 트랜잭션에 다음 Micrometer Timer를 추가해 Render에 배포했다.
-
-- 강의 조회
-- 중복 신청 확인
-- 기존 신청 목록 조회
-- 조건부 UPDATE
-- 신청 INSERT와 flush
-- commit/rollback을 포함한 전체 트랜잭션
-
-C/D 20 VU를 동일 조건으로 반복해 어느 단계에서 시간이 증가하는지 직접 확인한다. 결과가 나오기 전에는 트랜잭션 범위 축소, Hikari pool 증설, 캐시, Redis를 적용하지 않는다.
+트랜잭션 단계별 Timer 측정은 완료했다. 다음은 현재 결과를 개선 전 기준선으로 고정하고 가장 작은 변경 하나를 선택하는 단계다. `saveAndFlush()`는 C와 D에서 거의 같았으므로 근거 없이 제거하지 않으며, Hikari pool 증설·캐시·Redis도 먼저 적용하지 않는다.
 
 ## 면접 질문과 답변 핵심
 
@@ -249,7 +243,7 @@ pending은 커넥션 반환이 늦다는 증상이다. SQL, 네트워크, JPA, l
 
 ### 조건부 UPDATE가 병목 아닌가요?
 
-분산 row에서는 같은 로직이 20 VU에서 pending 0이었지만 동일 row에서는 pending 4와 p95 2.50배 증가가 나타났다. SQL 방식 자체보다 동일 row 경합이 핵심 후보이며 단계 Timer로 직접 검증 중이다.
+분산 row에서는 Hikari pending 중앙값이 0이었지만 동일 row에서는 세 번 모두 4였다. 조건부 UPDATE p95는 140.13ms에서 1413.76ms로 약 10.1배 증가했고 `saveAndFlush()`는 거의 같았다. SQL 방식 자체보다 동일 row 경합이 지배 구간이라는 해석을 통제 실험으로 확인했다.
 
 ## 표현 주의
 

@@ -1,0 +1,7 @@
+repetition,order_position,scenario,vus,k6_exit,p95_ms,p99_ms,fail_rate_pct,req_per_sec,rejected_pct,process_cpu_max_pct,system_cpu_max_pct,heap_max_pct,tomcat_busy_pct,gc_pause_seconds,hikari_active_pct,hikari_pending_max,hikari_acquire_avg_ms,hikari_acquire_max_ms,hikari_usage_avg_ms,hikari_usage_max_ms,hikari_timeouts,db_applied,db_actual,count_mismatch
+1,1,distributed-apply,20,0,1414.38,1637.17,0.00,8.56,0.00,40.80,40.26,46.06,7.00,0.02,100.00,3.00,34.67,601.56,710.31,5612.00,0.00,1615,1615,0
+1,2,same-course-apply,20,0,2635.60,2856.42,0.00,5.34,0.00,11.20,11.65,47.75,7.50,0.02,100.00,4.00,578.74,787.34,1748.76,1982.00,0.00,987,987,0
+2,1,same-course-apply,20,0,2519.56,2567.24,0.00,5.40,0.00,13.47,13.40,49.09,7.50,0.02,100.00,4.00,559.25,624.20,1732.30,1799.00,0.00,999,999,0
+2,2,distributed-apply,20,0,1025.71,1117.61,0.00,9.29,0.00,43.20,43.27,47.76,5.50,0.02,100.00,0.00,23.01,178.03,696.11,5602.00,0.00,1748,1748,0
+3,1,distributed-apply,20,0,1014.12,1114.33,0.00,9.31,0.00,7.60,7.01,45.91,5.50,0.02,100.00,0.00,14.41,168.64,694.10,5320.00,0.00,1751,1751,0
+3,2,same-course-apply,20,0,2512.98,2581.04,0.00,5.40,0.00,4.40,4.22,49.54,7.50,0.01,100.00,4.00,564.05,607.73,1730.75,1759.00,0.00,999,999,0

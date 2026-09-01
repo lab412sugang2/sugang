@@ -158,12 +158,11 @@ D는 모든 요청이 하나의 강의 row를 갱신한다. MySQL은 UPDATE 대�
 
 ## 다음 검증
 
-1. C/D 20 VU를 각각 최소 3회 반복해 결과를 재현한다.
-2. 수강신청 요청 한 건의 SQL 순서와 실행 횟수를 기록한다.
-3. 조건부 UPDATE 이후 commit까지 걸리는 시간을 측정한다.
-4. `saveAndFlush()`가 lock 보유 시간에 미치는 영향을 분리해 측정한다.
-5. 불필요한 사전 조회가 있는지 확인한다.
-6. 가장 작은 변경 하나를 적용한 뒤 동일한 20 VU 조건으로 재측정한다.
+1. C/D 20 VU를 각각 3회 반복해 실행 순서와 관계없이 차이가 재현되는지 확인했다.
+2. 조건부 UPDATE, `saveAndFlush()`, 트랜잭션 완료까지의 Timer를 분리했다.
+3. 조건부 UPDATE p95에서 약 10.1배 차이가 발생하고 `saveAndFlush()`는 거의 같은 것을 확인했다.
+4. 상세 결과는 `docs/performance/08-hot-row-phase-result.md`에 기록했다.
+5. 다음에는 가장 작은 변경 하나를 적용한 뒤 동일한 20 VU 조건으로 재측정한다.
 
 정합성 검증용 정원 10명·동시 요청 100개 실험은 이 지속 부하 실험과 별도로 유지한다.
 
@@ -172,4 +171,5 @@ D는 모든 요청이 하나의 강의 row를 갱신한다. MySQL은 UPDATE 대�
 ```text
 docs/performance/raw/baseline/bottleneck-isolation/20260823-142751/
 docs/performance/raw/baseline/bottleneck-isolation/20260823-143504/
+docs/performance/raw/baseline/bottleneck-isolation/20260901-202942/
 ```

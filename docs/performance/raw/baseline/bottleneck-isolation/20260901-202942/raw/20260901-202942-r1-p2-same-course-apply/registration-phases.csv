@@ -1,0 +1,2 @@
+scenario,vus,transaction_avg_ms,transaction_p95_ms,conditional_update_avg_ms,conditional_update_p95_ms,save_flush_avg_ms,save_flush_p95_ms
+same-course-apply,20,1661.80,1771.67,1135.90,1413.76,87.53,109.08

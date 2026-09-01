@@ -1,0 +1,2 @@
+scenario,vus,k6_exit,p95_ms,p99_ms,fail_rate_pct,req_per_sec,rejected_pct,process_cpu_max_pct,system_cpu_max_pct,heap_max_pct,tomcat_busy_pct,gc_pause_seconds,hikari_active_pct,hikari_pending_max,hikari_acquire_avg_ms,hikari_acquire_max_ms,hikari_usage_avg_ms,hikari_usage_max_ms,hikari_timeouts,db_applied,db_actual,count_mismatch
+same-course-apply,20,0,2635.60,2856.42,0.00,5.34,0.00,11.20,11.65,47.75,7.50,0.02,100.00,4.00,578.74,787.34,1748.76,1982.00,0.00,987,987,0
