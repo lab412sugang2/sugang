@@ -45,7 +45,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         "spring.datasource.hikari.minimum-idle=10",
         "spring.datasource.hikari.connection-timeout=10000"
 })
-@EnabledIfEnvironmentVariable(named = "DB_URL", matches = "jdbc:mysql:.*")
+@EnabledIfEnvironmentVariable(named = "RUN_CONCURRENCY_STRATEGY_COMPARISON", matches = "(?i)true")
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ConcurrencyStrategyComparisonTest {
 

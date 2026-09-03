@@ -10,6 +10,7 @@ export DB_URL="${DB_URL:-jdbc:mysql://127.0.0.1:3307/sugang?serverTimezone=Asia/
 export DB_USERNAME="${DB_USERNAME:-root}"
 export JPA_DDL_AUTO="${JPA_DDL_AUTO:-update}"
 export CONCURRENCY_RESULT_DIR="${OUT_DIR}"
+export RUN_CONCURRENCY_STRATEGY_COMPARISON=true
 JAVA_RUNTIME="$(java -version 2>&1 | head -n 1)"
 
 if [[ -z "${DB_PASSWORD:-}" ]]; then
