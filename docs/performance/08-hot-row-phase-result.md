@@ -102,9 +102,10 @@ Hikari pending 4와 connection 획득 평균 증가도 pool 크기 자체의 독
 
 1. 현재 결과를 개선 전 기준선으로 고정한다.
 2. 같은 row 쓰기는 정합성을 위해 직렬화될 수밖에 있다는 제약을 명시한다.
-3. `saveAndFlush()` 제거를 개선으로 단정하지 않고 별도 통제 실험으로만 검토한다.
-4. 최소 변경 하나를 선택한 뒤 같은 C/D 20 VU 조건으로 3회 재측정한다.
-5. 필요하면 MySQL `performance_schema`에서 실제 lock wait를 함께 수집해 해석을 직접 검증한다.
+3. 중복 확인 SQL 1개 제거 통제 실험을 완료했으며, SQL 수는 줄었지만 종단간 성능 개선은 확인하지 못했다.
+4. 따라서 현재 지배 구간은 중복 조회가 아니라 동일 row UPDATE 직렬화로 유지된다.
+5. 다음 변경도 하나만 선택하고 같은 C/D 20 VU 조건으로 3회 재측정한다.
+6. 필요하면 MySQL `performance_schema`에서 실제 lock wait를 함께 수집해 해석을 직접 검증한다.
 
 ## 원본 근거
 
@@ -113,3 +114,4 @@ Hikari pending 4와 connection 획득 평균 증가도 pool 크기 자체의 독
 - 실행 순서: `docs/performance/raw/baseline/bottleneck-isolation/20260901-202942/run-order.csv`
 - 회차별 k6·DB 결과: `docs/performance/raw/baseline/bottleneck-isolation/20260901-202942/raw/`
 - 반복 실행 스크립트: `scripts/perf/run_cd_repeated.sh`
+- 중복 확인 SQL 제거 After 결과: `docs/performance/10-redundant-duplicate-query-improvement-result.md`

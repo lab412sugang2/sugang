@@ -188,7 +188,16 @@ D는 실행 순서와 관계없이 세 번 모두 C보다 느렸다. 조건부 U
 
 조건부 UPDATE는 정합성을 보장하지만 동일 row 변경을 병렬화하지는 못한다. 요청 대상 row 분포만 변경한 통제 실험에서 조건부 UPDATE p95가 약 10.1배 증가했고 flush는 동일했다. 동일 강의 UPDATE의 row lock 대기로 트랜잭션과 connection 점유가 길어지고, Hikari pending은 그 결과로 나타난 것으로 분석했다.
 
-MySQL lock wait 행을 직접 수집한 것은 아니므로 “lock wait를 직접 관찰했다”라고 과장하지 않는다. 현재 결과는 단계 Timer와 통제 변수 비교를 통해 동일 row lock 대기 해석을 강하게 지지한다. 아직 개선은 적용하지 않았으며, 가장 작은 변경 하나를 선택해 동일 조건으로 검증한다.
+MySQL lock wait 행을 직접 수집한 것은 아니므로 “lock wait를 직접 관찰했다”라고 과장하지 않는다. 현재 결과는 단계 Timer와 통제 변수 비교를 통해 동일 row lock 대기 해석을 강하게 지지한다.
+
+추가로 중복 확인 `EXISTS` SQL을 제거하고 학생 신청 목록을 재사용하는 최소 변경을 적용했다. 중복 경로의 prepared statement 수가 3개에서 2개로 줄어든 것은 테스트로 검증했지만, Render + Railway MySQL에서 C/D를 20 VU로 각각 3회 재측정한 결과 종단간 성능 개선은 확인하지 못했다.
+
+- C HTTP p95 중앙값: 기준선 1025.71ms -> 개선 후 952.90ms
+- D HTTP p95 중앙값: 기준선 2519.56ms -> 개선 후 2673.16ms
+- D 조건부 UPDATE p95 중앙값: 기준선 1413.76ms -> 개선 후 1416.92ms
+- 6회 모두 HTTP 실패율, Hikari timeout, DB count mismatch: 0
+
+C의 수치 차이는 실행 범위가 겹치고 D의 지배 구간은 그대로였으므로, 이를 성능 개선으로 주장하지 않는다. SQL 정리는 유지하되 hot-row 직렬화가 다음 분석 대상이라는 결론을 기록했다. 상세 결과는 `docs/performance/10-redundant-duplicate-query-improvement-result.md`에 있다.
 
 ### Why / Alternatives / Trade-off / Verification
 
@@ -237,7 +246,7 @@ Render 배포가 성공했지만 `/actuator/health`의 DB는 MySQL이 아니라 
 
 ## 현재 진행 중인 검증
 
-트랜잭션 단계별 Timer 측정은 완료했다. 다음은 현재 결과를 개선 전 기준선으로 고정하고 가장 작은 변경 하나를 선택하는 단계다. `saveAndFlush()`는 C와 D에서 거의 같았으므로 근거 없이 제거하지 않으며, Hikari pool 증설·캐시·Redis도 먼저 적용하지 않는다.
+트랜잭션 단계별 Timer와 중복 확인 SQL 제거 통제 실험은 완료했다. SQL 1개를 줄였지만 동일 강의 hot-row 지연은 그대로였으므로, 다음은 동일 row UPDATE 대기 또는 트랜잭션 경계를 한 변수씩 검증하는 단계다. `saveAndFlush()`는 C와 D에서 거의 같았으므로 근거 없이 제거하지 않으며, Hikari pool 증설·캐시·Redis도 먼저 적용하지 않는다.
 
 ## 면접 질문과 답변 핵심
 
@@ -265,4 +274,5 @@ pending은 커넥션 반환이 늦다는 증상이다. SQL, 네트워크, JPA, l
 - 과거 H2 혼합 트래픽과 현재 Railway MySQL 결과를 합치지 않는다.
 - Hikari pending을 pool 크기 자체의 문제로 단정하지 않는다.
 - 조건부 UPDATE의 성능 우위를 일반화하지 않는다.
-- 개선 전·후 재측정 전에는 병목을 해결했다고 쓰지 않는다.
+- 중복 확인 SQL 제거만으로 병목을 해결했다고 쓰지 않는다.
+- hot-row의 MySQL lock wait를 직접 수집하기 전에는 lock wait를 직접 관찰했다고 쓰지 않는다.

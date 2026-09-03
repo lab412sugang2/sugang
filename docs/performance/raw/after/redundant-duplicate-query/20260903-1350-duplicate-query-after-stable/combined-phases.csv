@@ -1,0 +1,7 @@
+repetition,order_position,scenario,vus,transaction_avg_ms,transaction_p95_ms,conditional_update_avg_ms,conditional_update_p95_ms,save_flush_avg_ms,save_flush_p95_ms
+1,1,distributed-apply,20,560.03,698.61,103.90,206.41,90.72,124.01
+1,2,same-course-apply,20,1652.83,1786.26,1216.27,1416.92,88.18,111.61
+2,1,same-course-apply,20,1656.34,1946.16,1221.15,1419.20,87.61,110.69
+2,2,distributed-apply,20,532.01,623.11,94.06,147.30,87.52,110.37
+3,1,distributed-apply,20,519.87,616.36,91.07,124.01,85.59,107.74
+3,2,same-course-apply,20,1614.66,1771.67,1188.80,1413.76,85.07,106.62

@@ -1,7 +1,8 @@
 # 중복 확인 SQL 제거 개선 실험 계획
 
 - 작성일: 2026-09-03
-- 상태: 코드 변경 전 가설
+- 상태: 측정 완료
+- 개선 커밋: `7d890df`
 - 대상: `PlannerService.applyCourse()`
 - 개선 전 기준선: `docs/performance/08-hot-row-phase-result.md`
 
@@ -82,3 +83,11 @@ DB의 `(student_id, course_id)` UNIQUE 제약은 동시에 들어온 두 요청�
 3. HTTP p95, 처리량, 전체 트랜잭션, Hikari 사용·획득 시간을 함께 본다.
 4. 조건부 UPDATE p95가 계속 지배하면 중복 조회는 근본 병목이 아니었다고 결론 낸다.
 5. 차이가 작거나 실행별 변동 범위가 겹치면 성능 향상을 주장하지 않는다.
+
+## 측정 결과
+
+중복 확인 SQL을 1개 제거한 뒤 Render + Railway MySQL에서 C/D를 20 VU로 각각 3회 재측정했다. C의 HTTP p95는 기준선 1025.71ms에서 개선 후 952.90ms로 낮아졌지만 실행 범위가 겹쳤고, D의 HTTP p95는 2519.56ms에서 2673.16ms로 유의미하게 개선되지 않았다. D의 조건부 UPDATE p95도 1413.76ms와 1416.92ms로 사실상 같았다.
+
+따라서 SQL 1개 제거는 코드와 요청 경로를 단순화했지만, 이번 부하의 종단간 병목은 해결하지 못했다. 동일 강의 `courses` row의 UPDATE 직렬화가 다음 분석 대상이다.
+
+상세 결과와 원본 경로는 `docs/performance/10-redundant-duplicate-query-improvement-result.md`에 기록했다.
