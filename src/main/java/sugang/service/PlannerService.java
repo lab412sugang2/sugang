@@ -21,7 +21,6 @@ import static sugang.service.RegistrationMetrics.PHASE_APPLICATIONS_LOOKUP;
 import static sugang.service.RegistrationMetrics.PHASE_APPLICATION_FLUSH;
 import static sugang.service.RegistrationMetrics.PHASE_CONDITIONAL_UPDATE;
 import static sugang.service.RegistrationMetrics.PHASE_COURSE_LOOKUP;
-import static sugang.service.RegistrationMetrics.PHASE_DUPLICATE_CHECK;
 
 @Service
 public class PlannerService {
@@ -104,18 +103,13 @@ public class PlannerService {
         if (course.isCanceled()) {
             throw new IllegalStateException("폐강된 과목은 신청할 수 없습니다.");
         }
-        boolean alreadyApplied = registrationMetrics.recordPhase(
-                PHASE_DUPLICATE_CHECK,
-                () -> courseApplicationRepository.existsByStudentIdAndCourseId(studentId, courseId)
-        );
-        if (alreadyApplied) {
-            throw new IllegalStateException("이미 신청된 과목입니다.");
-        }
-
         List<CourseApplication> apps = registrationMetrics.recordPhase(
                 PHASE_APPLICATIONS_LOOKUP,
                 () -> courseApplicationRepository.findByStudentIdOrderByCreatedAtAsc(studentId)
         );
+        if (isAlreadyApplied(apps, courseId)) {
+            throw new IllegalStateException("이미 신청된 과목입니다.");
+        }
         validateCreditLimit(apps, course);
         validateTimeConflict(apps, course);
 
@@ -186,6 +180,11 @@ public class PlannerService {
         if (nextCredit > MAX_APPLICABLE_CREDIT) {
             throw new CreditLimitExceededException("신청가능학점(19학점)을 초과할 수 없습니다.");
         }
+    }
+
+    private boolean isAlreadyApplied(List<CourseApplication> applications, Long courseId) {
+        return applications.stream()
+                .anyMatch(application -> courseId.equals(application.getCourse().getId()));
     }
 
     private void validateTimeConflict(List<CourseApplication> apps, Course targetCourse) {
