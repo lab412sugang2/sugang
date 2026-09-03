@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="sugang.service.ConcurrencyStrategyComparisonTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-09-03T03:19:48" hostname="Jiwonui-MacBookPro.local" time="1.519">
+  <properties/>
+  <testcase name="compareThreeStrategiesUnderTheSameConcurrentRequests()" classname="sugang.service.ConcurrencyStrategyComparisonTest" time="1.519"/>
+  <system-out><![CDATA[12:19:44.306 [Test worker] INFO org.springframework.test.context.support.AnnotationConfigContextLoaderUtils -- Could not detect default configuration classes for test class [sugang.service.ConcurrencyStrategyComparisonTest]: ConcurrencyStrategyComparisonTest does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
+12:19:44.391 [Test worker] INFO org.springframework.boot.test.context.SpringBootTestContextBootstrapper -- Found @SpringBootConfiguration sugang.SugangApplication for test class sugang.service.ConcurrencyStrategyComparisonTest
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.5)
+
+2026-09-03T12:19:44.597+09:00  INFO 14430 --- [    Test worker] s.s.ConcurrencyStrategyComparisonTest    : Starting ConcurrencyStrategyComparisonTest using Java 25.0.2 with PID 14430 (started by kangdaeun in /Users/kangdaeun/Desktop/강대운/단국대/수강신청찐/untitled)
+2026-09-03T12:19:44.598+09:00  INFO 14430 --- [    Test worker] s.s.ConcurrencyStrategyComparisonTest    : No active profile set, falling back to 1 default profile: "default"
+2026-09-03T12:19:45.133+09:00  INFO 14430 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-03T12:19:45.171+09:00  INFO 14430 --- [    Test worker] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 33 ms. Found 2 JPA repository interfaces.
+2026-09-03T12:19:45.529+09:00  INFO 14430 --- [    Test worker] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-03T12:19:45.572+09:00  INFO 14430 --- [    Test worker] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.4.Final
+2026-09-03T12:19:45.595+09:00  INFO 14430 --- [    Test worker] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-03T12:19:45.765+09:00  INFO 14430 --- [    Test worker] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-03T12:19:45.782+09:00  INFO 14430 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-03T12:19:46.009+09:00  INFO 14430 --- [    Test worker] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@11170228
+2026-09-03T12:19:46.014+09:00  INFO 14430 --- [    Test worker] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-03T12:19:46.576+09:00  INFO 14430 --- [    Test worker] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-03T12:19:46.644+09:00  INFO 14430 --- [    Test worker] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-03T12:19:46.848+09:00  INFO 14430 --- [    Test worker] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-09-03T12:19:47.483+09:00  WARN 14430 --- [    Test worker] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-03T12:19:47.507+09:00  INFO 14430 --- [    Test worker] o.s.b.a.w.s.WelcomePageHandlerMapping    : Adding welcome page template: index
+2026-09-03T12:19:47.981+09:00  INFO 14430 --- [    Test worker] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoint(s) beneath base path '/actuator'
+2026-09-03T12:19:48.029+09:00  INFO 14430 --- [    Test worker] s.s.ConcurrencyStrategyComparisonTest    : Started ConcurrencyStrategyComparisonTest in 3.561 seconds (process running for 4.208)
+STRATEGY_RESULT repetition=1 order=1 strategy=PESSIMISTIC_LOCK requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=0 retry_exhausted=0 other_failures=0 duration_ms=125.98 throughput_rps=793.77 p50_ms=93.35 p95_ms=120.88 p99_ms=123.46 success_p95_ms=68.98 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=1 order=2 strategy=OPTIMISTIC_LOCK requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=209 retry_exhausted=0 other_failures=0 duration_ms=196.75 throughput_rps=508.25 p50_ms=175.38 p95_ms=185.97 p99_ms=192.04 success_p95_ms=153.09 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=1 order=3 strategy=CONDITIONAL_UPDATE requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=0 retry_exhausted=0 other_failures=0 duration_ms=87.88 throughput_rps=1137.88 p50_ms=63.59 p95_ms=78.39 p99_ms=79.68 success_p95_ms=49.78 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=2 order=1 strategy=OPTIMISTIC_LOCK requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=309 retry_exhausted=0 other_failures=0 duration_ms=230.26 throughput_rps=434.29 p50_ms=215.40 p95_ms=225.66 p99_ms=227.00 success_p95_ms=200.74 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=2 order=2 strategy=CONDITIONAL_UPDATE requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=0 retry_exhausted=0 other_failures=0 duration_ms=63.06 throughput_rps=1585.90 p50_ms=40.22 p95_ms=57.65 p99_ms=58.72 success_p95_ms=27.37 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=2 order=3 strategy=PESSIMISTIC_LOCK requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=0 retry_exhausted=0 other_failures=0 duration_ms=65.00 throughput_rps=1538.55 p50_ms=41.72 p95_ms=59.35 p99_ms=60.55 success_p95_ms=28.04 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=3 order=1 strategy=CONDITIONAL_UPDATE requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=0 retry_exhausted=0 other_failures=0 duration_ms=58.92 throughput_rps=1697.20 p50_ms=39.23 p95_ms=53.43 p99_ms=54.56 success_p95_ms=26.18 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=3 order=2 strategy=PESSIMISTIC_LOCK requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=0 retry_exhausted=0 other_failures=0 duration_ms=79.83 throughput_rps=1252.58 p50_ms=50.11 p95_ms=72.58 p99_ms=74.16 success_p95_ms=34.79 final_count=10 actual_applications=10 count_mismatch=0
+STRATEGY_RESULT repetition=3 order=3 strategy=OPTIMISTIC_LOCK requests=100 capacity=10 threads=100 success=10 full_rejected=90 optimistic_conflicts=310 retry_exhausted=0 other_failures=0 duration_ms=182.03 throughput_rps=549.35 p50_ms=167.44 p95_ms=177.22 p99_ms=181.05 success_p95_ms=156.20 final_count=10 actual_applications=10 count_mismatch=0
+]]></system-out>
+  <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (/Users/kangdaeun/.gradle/caches/modules-2/files-2.1/net.bytebuddy/byte-buddy-agent/1.14.13/979ce25f7d3096a2e82214ba7dc972a05ce7a171/byte-buddy-agent-1.14.13.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+</testsuite>

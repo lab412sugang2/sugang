@@ -1,0 +1,10 @@
+run_id=20260903-121937
+java_source_compatibility=17
+java_runtime=openjdk version "25.0.2" 2026-01-20
+db_url=jdbc:mysql://127.0.0.1:3307/sugang
+requests=100
+threads=100
+capacity=10
+repetitions=3
+hikari_max=32
+execution_order=PESSIMISTIC-OPTIMISTIC-CONDITIONAL / OPTIMISTIC-CONDITIONAL-PESSIMISTIC / CONDITIONAL-PESSIMISTIC-OPTIMISTIC
