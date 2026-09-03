@@ -96,7 +96,7 @@ Hikari pending 4와 connection 획득 평균 증가도 pool 크기 자체의 독
 
 이번 실험에서 확인한 지배 구간은 `saveAndFlush()`나 CPU가 아니라 동일 강의 row에 대한 조건부 UPDATE다. Hikari pool 대기는 원인이 아니라 긴 트랜잭션과 connection 점유의 후속 증상으로 판단했다.
 
-다만 MySQL `performance_schema`의 lock wait 행을 동시에 수집한 것은 아니므로, 문서에서는 “row lock 대기를 직접 캡처했다”가 아니라 “통제 실험과 단계 Timer 결과가 동일 row lock 대기 해석을 강하게 지지한다”라고 표현한다.
+후속 로컬 검증에서는 MySQL `performance_schema.data_lock_waits`와 `data_locks`를 신청 부하와 동시에 수집했다. 동일 `courses` row의 `PRIMARY` 인덱스에서 `X,REC_NOT_GAP` 대기가 실제로 관찰됐으며, 상세 결과는 `docs/performance/11-mysql-lock-wait-verification.md`에 기록했다.
 
 ## 다음 단계
 
@@ -105,7 +105,7 @@ Hikari pending 4와 connection 획득 평균 증가도 pool 크기 자체의 독
 3. 중복 확인 SQL 1개 제거 통제 실험을 완료했으며, SQL 수는 줄었지만 종단간 성능 개선은 확인하지 못했다.
 4. 따라서 현재 지배 구간은 중복 조회가 아니라 동일 row UPDATE 직렬화로 유지된다.
 5. 다음 변경도 하나만 선택하고 같은 C/D 20 VU 조건으로 3회 재측정한다.
-6. 필요하면 MySQL `performance_schema`에서 실제 lock wait를 함께 수집해 해석을 직접 검증한다.
+6. 로컬 MySQL에서 `performance_schema` lock wait를 직접 수집해 동일 row 경합 해석을 검증했다.
 
 ## 원본 근거
 
@@ -115,3 +115,4 @@ Hikari pending 4와 connection 획득 평균 증가도 pool 크기 자체의 독
 - 회차별 k6·DB 결과: `docs/performance/raw/baseline/bottleneck-isolation/20260901-202942/raw/`
 - 반복 실행 스크립트: `scripts/perf/run_cd_repeated.sh`
 - 중복 확인 SQL 제거 After 결과: `docs/performance/10-redundant-duplicate-query-improvement-result.md`
+- MySQL lock wait 직접 검증: `docs/performance/11-mysql-lock-wait-verification.md`

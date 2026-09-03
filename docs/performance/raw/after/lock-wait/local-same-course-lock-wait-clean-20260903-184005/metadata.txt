@@ -1,0 +1,12 @@
+db_host=127.0.0.1
+db_port=3307
+db_name=sugang
+db_username=root
+interval_seconds=0.2
+duration_seconds=210
+started_at_utc=2026-09-03T09:40:05Z
+8.0.45
+REPEATABLE-READ
+finished_at_utc=2026-09-03T09:43:36Z
+sample_count=820
+detail_query_hits=4

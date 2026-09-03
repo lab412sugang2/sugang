@@ -83,7 +83,7 @@ C의 HTTP p95 중앙값은 1025.71ms에서 952.90ms로 낮아졌지만 기준선
 
 D에서 지연을 지배하는 것은 중복 확인 SQL이 아니라 동일 `courses` row를 갱신할 때 발생하는 직렬화 비용으로 해석한다. Hikari pending 최대 4도 이 긴 트랜잭션과 connection 점유의 후속 증상으로 보는 것이 타당하다.
 
-이번 실험은 단계 Timer와 통제 변수 비교를 통해 hot-row 해석을 지지하지만, MySQL `performance_schema`의 lock wait 행을 동시에 직접 수집한 것은 아니다. 따라서 “row lock을 직접 관찰했다”가 아니라 “동일 row UPDATE의 대기 구간이 지배적이라는 근거를 확보했다”고 표현한다.
+이번 Render-Railway 실험 자체는 단계 Timer와 통제 변수 비교로 hot-row 해석을 지지했으며, 당시에는 MySQL `performance_schema`의 lock wait 행을 동시에 직접 수집하지 않았다. 이후 로컬 MySQL에서 동일 강의 부하와 `data_lock_waits`, `data_locks`를 함께 수집해 `courses`의 `PRIMARY` row lock 대기를 직접 확인했다. 직접 검증의 범위와 원본은 `docs/performance/11-mysql-lock-wait-verification.md`에 분리해 기록했다.
 
 ## 결론
 
